@@ -19,9 +19,10 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.models.regressions import run_factor_regression
 
 
-DATA_DIR = PROJECT_ROOT / "test_data"
-ARCHIVE_2014_DIR = DATA_DIR / "_historical_2014"
-ARCHIVE_2015_DIR = DATA_DIR / "_historical_2015"
+DATA_DIR = PROJECT_ROOT / "data" / "test" / "kenneth_french"
+ARCHIVE_ROOT = PROJECT_ROOT / "data" / "reference" / "kenneth_french"
+ARCHIVE_2014_DIR = ARCHIVE_ROOT / "vintage_2014"
+ARCHIVE_2015_DIR = ARCHIVE_ROOT / "vintage_2015"
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 COMPARISON_PATH = OUTPUT_DIR / "step4_table7_comparison.csv"
 TABLE5_SUMMARY_PATH = OUTPUT_DIR / "step4_table5_panel_a_comparison.csv"
@@ -69,7 +70,7 @@ def read_french_archive(path: Path) -> pd.DataFrame:
     if not path.is_file():
         raise FileNotFoundError(
             f"Historical factor archive is missing: {path}. "
-            "Download the official archive linked in outputs/step4_audit.md."
+            "See the committed official archives under data/reference/kenneth_french/."
         )
     with zipfile.ZipFile(path) as archive:
         data_files = [

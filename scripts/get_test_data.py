@@ -14,7 +14,8 @@ Cach chay:
     Chay tu thu muc goc repo sau khi cai requirements.lock.txt.
     .venv\\Scripts\\python.exe scripts\\get_test_data.py
 
-Ket qua: cac file CSV duoc luu vao thu muc ./test_data/
+Ket qua: du lieu Kenneth French vao data/test/kenneth_french/;
+          du lieu mau Factor Team vao data/test/us_factor_logic/.
 """
 
 import sys
@@ -28,10 +29,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 from src.models.regressions import run_factor_regression
 
-OUT_DIR = PROJECT_ROOT / "test_data"
+FRENCH_OUT_DIR = PROJECT_ROOT / "data" / "test" / "kenneth_french"
+US_TEST_OUT_DIR = PROJECT_ROOT / "data" / "test" / "us_factor_logic"
 FACTOR_TEST_START = "1963-07-01"
 FACTOR_TEST_END = "2013-12-31"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+FRENCH_OUT_DIR.mkdir(parents=True, exist_ok=True)
+US_TEST_OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
 # PHAN 1: Lay factor thanh pham tu Kenneth French Data Library
@@ -52,8 +55,8 @@ def get_ff_factors():
     ff3 = ff3_raw[0].copy()
     ff3.index = ff3.index.to_timestamp()
     ff3 = ff3 / 100.0  # doi tu % ve decimal
-    ff3.to_csv(OUT_DIR / "ff3_factors_monthly.csv")
-    print(f"  -> Da luu {OUT_DIR / 'ff3_factors_monthly.csv'}  ({len(ff3)} dong)")
+    ff3.to_csv(FRENCH_OUT_DIR / "ff3_factors_monthly.csv")
+    print(f"  -> Da luu {FRENCH_OUT_DIR / 'ff3_factors_monthly.csv'}  ({len(ff3)} dong)")
 
     print("Dang tai FF 5-factor (MKT, SMB, HML, RMW, CMA)...")
     ff5_raw = web.DataReader(
@@ -65,8 +68,8 @@ def get_ff_factors():
     ff5 = ff5_raw[0].copy()
     ff5.index = ff5.index.to_timestamp()
     ff5 = ff5 / 100.0
-    ff5.to_csv(OUT_DIR / "ff5_factors_monthly.csv")
-    print(f"  -> Da luu {OUT_DIR / 'ff5_factors_monthly.csv'}  ({len(ff5)} dong)")
+    ff5.to_csv(FRENCH_OUT_DIR / "ff5_factors_monthly.csv")
+    print(f"  -> Da luu {FRENCH_OUT_DIR / 'ff5_factors_monthly.csv'}  ({len(ff5)} dong)")
 
     print("Dang tai 25 danh muc Size-B/M (LHS portfolios, dung cho GRS test)...")
     p25_raw = web.DataReader(
@@ -78,8 +81,8 @@ def get_ff_factors():
     p25 = p25_raw[0].copy()  # bang 0 = value-weighted returns
     p25.index = p25.index.to_timestamp()
     p25 = p25 / 100.0
-    p25.to_csv(OUT_DIR / "25_portfolios_size_bm.csv")
-    print(f"  -> Da luu {OUT_DIR / '25_portfolios_size_bm.csv'}  ({len(p25)} dong)")
+    p25.to_csv(FRENCH_OUT_DIR / "25_portfolios_size_bm.csv")
+    print(f"  -> Da luu {FRENCH_OUT_DIR / '25_portfolios_size_bm.csv'}  ({len(p25)} dong)")
 
     return ff3, ff5, p25
 
@@ -102,8 +105,8 @@ def get_stock_level_test_data():
     print(f"Dang tai gia {len(tickers)} ma US de test portfolio sort...")
     data = yf.download(tickers, start="2018-01-01", end="2023-01-01",
                         auto_adjust=True, progress=False)["Close"]
-    data.to_csv(OUT_DIR / "us_test_prices.csv")
-    print(f"  -> Da luu {OUT_DIR / 'us_test_prices.csv'}  ({data.shape})")
+    data.to_csv(US_TEST_OUT_DIR / "us_test_prices.csv")
+    print(f"  -> Da luu {US_TEST_OUT_DIR / 'us_test_prices.csv'}  ({data.shape})")
 
     # Gia lap "size" (von hoa) va "book-to-market" de test thuat toan sort.
     # Khi chuyen sang VN, hai cot nay se duoc thay bang du lieu that
@@ -120,8 +123,8 @@ def get_stock_level_test_data():
         "size": size_proxy,
         "book_to_market": bm_proxy,
     })
-    characteristics.to_csv(OUT_DIR / "us_test_characteristics.csv")
-    print(f"  -> Da luu {OUT_DIR / 'us_test_characteristics.csv'} (size + B/M gia lap)")
+    characteristics.to_csv(US_TEST_OUT_DIR / "us_test_characteristics.csv")
+    print(f"  -> Da luu {US_TEST_OUT_DIR / 'us_test_characteristics.csv'} (size + B/M gia lap)")
 
     return data, characteristics
 
@@ -202,4 +205,7 @@ if __name__ == "__main__":
         print(f"{name}: alpha={m.params['const']:.4f}  "
               f"t={m.tvalues['const']:.2f}  R2={m.rsquared:.3f}")
 
-    print(f"\nHoan tat. Du lieu test da san sang trong thu muc {OUT_DIR}.")
+    print(
+        "\nHoan tat. Du lieu test da san sang trong "
+        f"{FRENCH_OUT_DIR} va {US_TEST_OUT_DIR}."
+    )

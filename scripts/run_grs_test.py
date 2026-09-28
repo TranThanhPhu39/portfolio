@@ -18,7 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.models.grs_test import GRSResult, grs_test
 
 
-DATA_DIR = PROJECT_ROOT / "test_data"
+DATA_DIR = PROJECT_ROOT / "data" / "test" / "kenneth_french"
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 RESULTS_PATH = OUTPUT_DIR / "step5_grs_results.csv"
 REPORT_PATH = OUTPUT_DIR / "step5_grs_audit.md"
@@ -27,25 +27,26 @@ SAMPLE_END = "2013-12-01"
 PORTFOLIO_PATH = DATA_DIR / "25_portfolios_size_bm.csv"
 FF3_PATH = DATA_DIR / "ff3_factors_monthly.csv"
 FF5_PATH = DATA_DIR / "ff5_factors_monthly.csv"
+ARCHIVE_ROOT = PROJECT_ROOT / "data" / "reference" / "kenneth_french"
 ARCHIVES = (
     (
         "FF3",
         "July 2014 archive sensitivity",
-        DATA_DIR / "_historical_2014" / "ff3_july2014.zip",
+        ARCHIVE_ROOT / "vintage_2014" / "ff3_july2014.zip",
         ["Mkt-RF", "SMB", "HML"],
         3.62,
     ),
     (
         "FF3",
         "July 2015 archive sensitivity",
-        DATA_DIR / "_historical_2015" / "ff3_july2015.zip",
+        ARCHIVE_ROOT / "vintage_2015" / "ff3_july2015.zip",
         ["Mkt-RF", "SMB", "HML"],
         3.62,
     ),
     (
         "FF5",
         "July 2015 archive sensitivity",
-        DATA_DIR / "_historical_2015" / "ff5_july2015.zip",
+        ARCHIVE_ROOT / "vintage_2015" / "ff5_july2015.zip",
         ["Mkt-RF", "SMB", "HML", "RMW", "CMA"],
         2.84,
     ),

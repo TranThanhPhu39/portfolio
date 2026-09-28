@@ -1,10 +1,33 @@
-# Portfolio factor-model workflow
+# Portfolio - econometrics workflow
 
-This repository contains the econometrics team's completed Steps 1-6 for testing CAPM, Fama-French 3-factor (FF3), and 5-factor (FF5) models with Kenneth French data. Step 7 is waiting for the Vietnam stock-return and factor datasets.
+This repository supports the VN100 asset-pricing and portfolio project described in the project brief. The econometrics team's completed Steps 1-6 use Kenneth French data to validate the CAPM, FF3, FF5, GRS, HAC, and VIF workflow. Step 7 is pending delivery of Vietnam returns and Vietnam factors.
 
-## Environment
+## Audit entry point
 
-Core package versions are pinned in `requirements.txt`; `requirements.lock.txt` records the resolved Python 3.12.14 environment (`.python-version`). On Windows PowerShell:
+Start with [`docs/econometrics_audit_guide.md`](docs/econometrics_audit_guide.md). It maps each checklist step to its inputs, implementation, saved output, and completion evidence. [`data/README.md`](data/README.md) explains which files are test inputs and which are historical references.
+
+For a cell-by-cell review of the econometrics workflow, open [`notebooks/03_asset_pricing_tests.ipynb`](notebooks/03_asset_pricing_tests.ipynb).
+
+## Repository layout
+
+```text
+data/                  Test inputs and historical references
+docs/                  Method and audit documentation
+config/                Project configuration and universe
+src/                   Reusable data, factor, model, portfolio, and backtest code
+scripts/               Reproducible workflow entry points
+notebooks/             Econometrics Step 3 audit notebook
+outputs/               Tables and audit reports for Steps 1-6
+tests/                 Existing project tests
+requirements.txt       Pinned runtime dependencies
+requirements.lock.txt  Resolved Python 3.12.14 environment
+```
+
+The Step 3 notebook is an audit view over the same reusable functions and saved tables. Scripts under `scripts/` remain the repeatable workflow entry points.
+
+## Set up on Windows
+
+Use Python 3.12.14 as recorded in `.python-version`:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -12,21 +35,9 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
 ```
 
-## Test data
+## Reproduce Steps 3-6
 
-A snapshot of the exact test inputs used for the saved results is included in `test_data/` so the team can inspect and rerun the work immediately. Git ignores that directory to prevent newly generated data from being added accidentally. The repository also includes the historical Kenneth French factor ZIP files used for vintage sensitivity checks.
-
-To regenerate current test data from the repository root:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\get_test_data.py
-```
-
-The helper downloads monthly FF3 factors, FF5 factors, and the value-weighted 25 Size-B/M portfolios from the Kenneth French Data Library. It also downloads US sample prices and creates synthetic size and book-to-market characteristics for the Factor Team's sorting-logic checks. These US characteristics are test inputs, not research data. The helper uses the canonical regression implementation in `src/models/`; the 25-portfolio GRS analysis is implemented in `src/models/grs_test.py` and run by `scripts/run_grs_test.py`.
-
-## Run the workflow
-
-Run these commands from the repository root, in order:
+The committed snapshot under `data/test/` lets reviewers run the analyses immediately. From the repository root:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\compare_factor_models.py
@@ -35,8 +46,16 @@ Run these commands from the repository root, in order:
 .\.venv\Scripts\python.exe scripts\run_step6_diagnostics.py
 ```
 
-The scripts write tables and audit reports to `outputs/`.
+To fetch a fresh Kenneth French sample and the separate US factor-sorting logic sample, run:
 
-## Results and scope
+```powershell
+.\.venv\Scripts\python.exe scripts\get_test_data.py
+```
 
-`outputs/full_audit_steps1_6.md` records the inputs, numerical results, completion criteria, and known limitation: the current 25-portfolio LHS vintage has not been established as the exact 2015 vintage used by the paper. Comparisons with Fama-French (2015) are therefore approximate. The factor-vintage sensitivity run does not replace a matching historical LHS file. Step 7 requires Vietnam returns and Vietnam factors from the other teams.
+The fetcher writes to `data/test/kenneth_french/` and `data/test/us_factor_logic/`. It does not replace the historical reference archives under `data/reference/`.
+
+## Results and known boundary
+
+The final consolidated review is [`outputs/full_audit_steps1_6.md`](outputs/full_audit_steps1_6.md). Step-specific results are in `outputs/step3_*` through `outputs/step6_*`; the earlier Steps 1-5 review is retained under [`outputs/history/`](outputs/history/).
+
+Comparisons with Fama-French (2015) are approximate because the current 25-portfolio LHS file has no vintage metadata and has not been verified as the exact 2015 file. Step 7 must wait for the Vietnam dataset; the test data in this repository is not Vietnam research data.

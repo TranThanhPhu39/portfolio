@@ -10,9 +10,9 @@ The work uses the current local 25-portfolio LHS vintage. A matching 2015 vintag
 
 | Input | Verified shape | Sample | Result |
 |---|---:|---|---|
-| `test_data/25_portfolios_size_bm.csv` | 606 × 25 | 1963-07 to 2013-12 | Unique dates and columns; no missing or non-finite values |
-| `test_data/ff3_factors_monthly.csv` | 606 × 4 | 1963-07 to 2013-12 | Mkt-RF, SMB, HML, RF; complete and finite |
-| `test_data/ff5_factors_monthly.csv` | 606 × 6 | 1963-07 to 2013-12 | Mkt-RF, SMB, HML, RMW, CMA, RF; complete and finite |
+| `data/test/kenneth_french/25_portfolios_size_bm.csv` | 606 × 25 | 1963-07 to 2013-12 | Unique dates and columns; no missing or non-finite values |
+| `data/test/kenneth_french/ff3_factors_monthly.csv` | 606 × 4 | 1963-07 to 2013-12 | Mkt-RF, SMB, HML, RF; complete and finite |
+| `data/test/kenneth_french/ff5_factors_monthly.csv` | 606 × 6 | 1963-07 to 2013-12 | Mkt-RF, SMB, HML, RMW, CMA, RF; complete and finite |
 
 The data helper reads table 0 for the value-weighted 25 portfolios and converts percent returns to decimals. FF3 and FF5 factors come from separate files because their SMB series are not interchangeable.
 
@@ -94,12 +94,12 @@ The active Python source was reviewed by function and control-flow block; all li
 
 | Source | Code blocks reviewed | Audit focus |
 |---|---|---|
-| `E:/Downloads/get_test_data.py` | lines 36-89 data retrieval | Kenneth French FF3/FF5 datasets, P25 table 0 value-weighted returns, date cut and percent-to-decimal conversion |
+| `scripts/get_test_data.py` | Kenneth French data retrieval | FF3/FF5 datasets, P25 table 0 value-weighted returns, date cut and percent-to-decimal conversion |
 | `src/models/regressions.py` | lines 13-33 date normalization; 35-102 `run_factor_regression` | Date types, duplicates, RF subtraction, intercept, design rank, finite values, statsmodels output |
 | `scripts/compare_factor_models.py` | lines 21-28 model/source constants; 30-112 alignment and fits; 115-135 output | Factor-file assignment, 606-date sample, alpha/t/R², increasing-R² guard |
-| `scripts/compare_to_fama_french_2015.py` | lines 53-131 CSV/archive parsing and HML^O; 133-244 fit/summary helpers; 246-464 orchestration; 466-505 output | Table 7 cell mapping, Table 5 aggregate stats, units, vintage and hashes |
+| `scripts/compare_to_fama_french_2015.py` | lines 54-132 CSV/archive parsing and HML^O; 134-245 fit/summary helpers; 247-465 orchestration; 467-506 output | Table 7 cell mapping, Table 5 aggregate stats, units, vintage and hashes |
 | `src/models/grs_test.py` | lines 15-28 result type; 30-200 `grs_test` | Input validation, alignment, 25 OLS residuals, covariance divisors, F degrees, Cholesky and upper-tail p-value |
-| `scripts/run_grs_test.py` | lines 78-136 input validation; 138-179 independent MLE formula; 181-236 execution checks; 275-446 output/report | CAPM/FF3/FF5 sources, archive sensitivities, Table 5 references and fingerprints |
+| `scripts/run_grs_test.py` | lines 79-137 input validation; 139-180 independent MLE formula; 182-237 execution checks; 276-447 output/report | CAPM/FF3/FF5 sources, archive sensitivities, Table 5 references and fingerprints |
 | `src/models/diagnostics.py` | lines 18-28 result type; 30-101 HAC; 103-148 VIF | HAC settings, coefficient invariance, VIF design and edge handling |
 | `scripts/run_step6_diagnostics.py` | lines 38-133 input and independent formula checks; 134-152 formatting; 154-462 orchestration; 464-483 CLI | 606-date sample, lags, Step 3 linkage, VIF flags, report and outputs |
 

@@ -17,7 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.models.diagnostics import calculate_vif, run_hac_regression
 
 
-DATA_DIR = PROJECT_ROOT / "test_data"
+DATA_DIR = PROJECT_ROOT / "data" / "test" / "kenneth_french"
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 HAC_RESULTS_PATH = OUTPUT_DIR / "step6_hac_results.csv"
 VIF_RESULTS_PATH = OUTPUT_DIR / "step6_vif.csv"

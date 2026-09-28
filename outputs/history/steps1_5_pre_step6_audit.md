@@ -1,4 +1,6 @@
-# Full audit before Step 6: Steps 1-5
+# Archived audit before Step 6: Steps 1-5
+
+This is the checkpoint recorded before Step 6. For the completed Steps 1-6 result, see `../full_audit_steps1_6.md`.
 
 ## Verdict
 
@@ -8,9 +10,9 @@
 
 | File | Verified dimensions | Date sample | Checks |
 |---|---:|---|---|
-| `test_data/25_portfolios_size_bm.csv` | 606 × 25 | 1963-07 through 2013-12 | No duplicate dates, missing cells, or non-finite values; value-weighted return series in decimal units |
-| `test_data/ff3_factors_monthly.csv` | 606 × 4 | 1963-07 through 2013-12 | Mkt-RF, SMB, HML, RF; no duplicate dates, missing cells, or non-finite values |
-| `test_data/ff5_factors_monthly.csv` | 606 × 6 | 1963-07 through 2013-12 | Mkt-RF, SMB, HML, RMW, CMA, RF; no duplicate dates, missing cells, or non-finite values |
+| `data/test/kenneth_french/25_portfolios_size_bm.csv` | 606 × 25 | 1963-07 through 2013-12 | No duplicate dates, missing cells, or non-finite values; value-weighted return series in decimal units |
+| `data/test/kenneth_french/ff3_factors_monthly.csv` | 606 × 4 | 1963-07 through 2013-12 | Mkt-RF, SMB, HML, RF; no duplicate dates, missing cells, or non-finite values |
+| `data/test/kenneth_french/ff5_factors_monthly.csv` | 606 × 6 | 1963-07 through 2013-12 | Mkt-RF, SMB, HML, RMW, CMA, RF; no duplicate dates, missing cells, or non-finite values |
 
 The data helper selects table 0 from the Kenneth French `25_Portfolios_5x5` response and converts percent returns to decimals. FF3 and FF5 are separate factor files; their SMB series are not interchangeable. The current CSV hashes are recorded in `step4_audit.md` and `step5_grs_audit.md`.
 

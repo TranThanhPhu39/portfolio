@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.models.regressions import run_factor_regression
 
 
-DATA_DIR = PROJECT_ROOT / "test_data"
+DATA_DIR = PROJECT_ROOT / "data" / "test" / "kenneth_french"
 OUTPUT_PATH = PROJECT_ROOT / "outputs" / "step3_model_comparison.csv"
 PORTFOLIO = "SMALL LoBM"
 FF3_COLUMNS = ["Mkt-RF", "SMB", "HML", "RF"]
