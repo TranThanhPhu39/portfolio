@@ -1,0 +1,8 @@
+--extra-index-url https://vnstocks.com/api/simple
+pandas==2.2.0
+numpy==1.26.0
+scipy==1.13.0
+statsmodels==0.14.0
+pandas-datareader==0.11.1
+yfinance==1.0
+vnstock @ git+https://github.com/thinh-vu/vnstock.git@db3609169d9ce8e8d0e8fbf59c4294c2b28ace8b

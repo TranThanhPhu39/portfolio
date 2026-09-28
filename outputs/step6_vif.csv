@@ -1,0 +1,10 @@
+model,factor_source,factor,vif,vif_independent,vif_independent_abs_gap,observations,single_factor_model,above_statsmodels_5_reference,above_project_10_threshold,note
+CAPM,ff3_factors_monthly.csv,Mkt-RF,1,1,0,606,True,False,False,Single RHS factor; VIF=1 is not informative about between-factor collinearity.
+FF3,ff3_factors_monthly.csv,Mkt-RF,1.15101908526144,1.15101908526144,0,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF3,ff3_factors_monthly.csv,SMB,1.11830090193814,1.11830090193814,2.22044604925031e-16,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF3,ff3_factors_monthly.csv,HML,1.09992610149205,1.09992610149205,2.22044604925031e-16,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF5,ff5_factors_monthly.csv,Mkt-RF,1.31175735626234,1.31175735626234,2.22044604925031e-16,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF5,ff5_factors_monthly.csv,SMB,1.19317682355939,1.19317682355939,0,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF5,ff5_factors_monthly.csv,HML,2.004376291782,2.004376291782,0,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF5,ff5_factors_monthly.csv,RMW,1.22358925913392,1.22358925913392,0,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
+FF5,ff5_factors_monthly.csv,CMA,2.25947738435207,2.25947738435207,4.44089209850063e-16,606,False,False,False,VIF is calculated with an intercept and excludes RF from the RHS.
