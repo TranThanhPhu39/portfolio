@@ -1,0 +1,13 @@
+pandas==2.2.0
+numpy==1.26.0
+scipy==1.13.0
+statsmodels==0.14.0
+# vnstock 3.x is no longer exposed by the current simple index. This is the
+# official PyPI wheel for vnstock==3.4.0, pinned by hash for reproducibility.
+vnstock @ https://files.pythonhosted.org/packages/24/9c/7a3146b1c5e548a96e618d6fd074a0efbc81042aee04216f717d07ecc4a2/vnstock-3.4.0-py3-none-any.whl#sha256=a3a7400e298eb4027eb40fcad670c2dd3b1c5ec8f8a7356b42564500675cbcc3
+
+# Dependencies used by the US/Kenneth French test-data pipeline.
+pandas-datareader==0.10.0
+yfinance>=0.2.54,<2.0
+matplotlib>=3.9,<4.0
+pytest>=8.0,<10.0
