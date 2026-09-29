@@ -24,6 +24,18 @@
 
 The VM's pinned runtime used here is Python 3.12.14, pandas 2.2.0, numpy 1.26.0, scipy 1.13.0, statsmodels 0.14.0, openpyxl 3.1.5, and vnstock 3.5.0. `pytest` is absent from this runtime, so no pytest suite was run; the entry-point and result reconciliations above are the executed checks.
 
+## Final independent audit (2026-09-30)
+
+- Re-read the original Econometrics Team checklist in `[gói 1] check tiến độ.xlsx` (sheet `nhóm 2 - KTL`, rows 5–11), the project brief's econometrics outputs and VN100/RF definitions, and the relevant Table 5/7 entries in Fama–French (2015). The reference figures recorded for Steps 4–5 match those tables.
+- Recomputed the Kenneth French CAPM/FF3/FF5 regressions, 25-portfolio GRS, lag-12 HAC alpha inference, and RHS VIF directly from the three 606-month test CSVs. The saved Step 3/5/6 figures agree within CSV rounding; the Step 3 R² order and the VIF < 10 criterion hold.
+- Independently reconstructed the VN sample from the June 2021 formation audit. The configured tickers are exactly the top 30 by formation market cap, with no later accounting information in that cohort; all 30 have 60 returns, for 1,800 selected stock-month rows. Every selected return uses `close_eom`; seven reported-versus-price gaps exceed one percentage point.
+- Independently fitted all 90 VN regressions by matrix least squares and recomputed each model's GRS F/p from the residual and factor covariance matrices. The maximum differences from saved alpha and t-statistic values are 4.63e-10 percentage points and 4.57e-10, respectively, due to CSV rounding. Table 5 aggregates, Table 7 cells, factor betas, HAC z statistics, and VIF rows reconcile to their detailed outputs.
+- Re-ran the VN100 entry point into a temporary directory. Twelve of its 13 files are byte-identical to the committed baseline. `model_summaries.txt` differs only in the wall-clock `Time:` fields inserted by statsmodels; its model statistics are unchanged.
+- Rechecked the supplied ZIP SHA-256 and the three tracked input hashes in `run_manifest.json`; they match the files currently available. The raw ZIP is not in the PR, while the cleaned return and factor CSVs needed to reproduce the Econometrics Team run are tracked.
+- The Factor Team data-quality table flags one return above 100%: VIX.HM in July 2025 is +114.1176%. Its reported and price-derived returns agree to numerical precision. VIX.HM is outside the selected 30-stock LHS, but this source observation can enter factor construction; it remains a flagged source-data observation, not a correction made by the Econometrics Team.
+
+The checklist outputs and checkable completion criteria pass on the supplied data. Exact replication of the 2015 paper remains limited by the unverified vintage of the US LHS file. The VN run uses the documented 1Y-yield monthly RF proxy and the Factor Team's stated formation and weighting rules; these choices must remain explicit when the group reports the empirical findings.
+
 ## Checklist status, Steps 1–7
 
 | Step | Status | Evidence against the checklist output / DoD | Remaining action |
