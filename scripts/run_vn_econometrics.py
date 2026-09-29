@@ -343,6 +343,10 @@ def run(args: argparse.Namespace) -> None:
             ("r_squared", "r_squared"),
         ]:
             table7[f"{model}_{suffix}"] = table7["ticker"].map(block[source])
+        for factor in MODEL_FACTORS[model]:
+            table7[f"{model}_beta_{factor}"] = table7["ticker"].map(
+                block[f"beta_{factor}"]
+            )
 
     hml_response = sample_factors["HML"]
     hml_design = sm.add_constant(
@@ -456,7 +460,7 @@ The paper's Table 5 uses 25 or 32 sorted US portfolios; this table uses 30 VN st
 
 ## Inference and diagnostics
 
-- OLS alpha/t and R² for every stock/model are in `asset_model_summary.csv`; coefficient-level OLS and HAC lag 12/6 estimates are in `coefficient_detail.csv`.
+- OLS alpha/t, factor betas, and R² for every stock/model are in `table7_style_assets.csv` and `asset_model_summary.csv`; coefficient-level OLS and HAC lag 12/6 estimates are in `coefficient_detail.csv`.
 - VIF rows above the project threshold 10: {qa['vif_over_10_count']}. Values are in `vif.csv`.
 - FF5 R² is below FF3 R² for {len(decreases)} of 30 assets: {', '.join(decreases) if decreases else 'none'}. This can occur because FF5 uses SMB_FF5 rather than the FF3 SMB series.
 - HML spanning regression (HML on MKT_RF, SMB_FF5, RMW, CMA): alpha {hml_row['alpha_pct_per_month']:.4f}%/month; OLS t {hml_row['alpha_t_ols']:.4f}; HAC lag-12 z {hml_row['alpha_z_hac12']:.4f}. Full p-values are in `hml_redundancy.csv`.

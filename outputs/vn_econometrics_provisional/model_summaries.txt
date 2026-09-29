@@ -6,7 +6,7 @@ Dep. Variable:                 ACB.HM   R-squared:                       0.420
 Model:                            OLS   Adj. R-squared:                  0.410
 Method:                 Least Squares   F-statistic:                     42.04
 Date:                Wed, 30 Sep 2026   Prob (F-statistic):           2.14e-08
-Time:                        00:13:03   Log-Likelihood:                 104.32
+Time:                        00:39:12   Log-Likelihood:                 104.32
 No. Observations:                  60   AIC:                            -204.6
 Df Residuals:                      58   BIC:                            -200.5
 Df Model:                           1
@@ -35,7 +35,7 @@ Dep. Variable:                 ACB.HM   R-squared:                       0.423
 Model:                            OLS   Adj. R-squared:                  0.392
 Method:                 Least Squares   F-statistic:                     13.67
 Date:                Wed, 30 Sep 2026   Prob (F-statistic):           8.39e-07
-Time:                        00:13:04   Log-Likelihood:                 104.45
+Time:                        00:39:13   Log-Likelihood:                 104.45
 No. Observations:                  60   AIC:                            -200.9
 Df Residuals:                      56   BIC:                            -192.5
 Df Model:                           3
@@ -66,7 +66,7 @@ Dep. Variable:                 ACB.HM   R-squared:                       0.574
 Model:                            OLS   Adj. R-squared:                  0.534
 Method:                 Least Squares   F-statistic:                     14.54
 Date:                Wed, 30 Sep 2026   Prob (F-statistic):           5.09e-09
-Time:                        00:13:04   Log-Likelihood:                 113.56
+Time:                        00:39:14   Log-Likelihood:                 113.56
 No. Observations:                  60   AIC:                            -215.1
 Df Residuals:                      54   BIC:                            -202.5
 Df Model:                           5

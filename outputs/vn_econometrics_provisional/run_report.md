@@ -20,7 +20,7 @@ The paper's Table 5 uses 25 or 32 sorted US portfolios; this table uses 30 VN st
 
 ## Inference and diagnostics
 
-- OLS alpha/t and R² for every stock/model are in `asset_model_summary.csv`; coefficient-level OLS and HAC lag 12/6 estimates are in `coefficient_detail.csv`.
+- OLS alpha/t, factor betas, and R² for every stock/model are in `table7_style_assets.csv` and `asset_model_summary.csv`; coefficient-level OLS and HAC lag 12/6 estimates are in `coefficient_detail.csv`.
 - VIF rows above the project threshold 10: 0. Values are in `vif.csv`.
 - FF5 R² is below FF3 R² for 3 of 30 assets: HPG.HM, HSG.HM, HVN.HM. This can occur because FF5 uses SMB_FF5 rather than the FF3 SMB series.
 - HML spanning regression (HML on MKT_RF, SMB_FF5, RMW, CMA): alpha 0.8091%/month; OLS t 1.0358; HAC lag-12 z 1.1374. Full p-values are in `hml_redundancy.csv`.
