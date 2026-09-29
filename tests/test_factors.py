@@ -3,10 +3,14 @@ import pandas as pd
 import pytest
 
 from src.factors import (
+    annual_yield_percent_to_monthly,
+    build_annual_july_panel,
+    build_point_in_time_formations,
     compute_cma,
     compute_rmw,
     compute_smb_hml,
     portfolio_sort,
+    reconcile_period_returns,
     validate_vn_panel,
 )
 
@@ -65,3 +69,128 @@ def test_vn_panel_rejects_look_ahead_rows():
     })
     with pytest.raises(ValueError, match="information_date"):
         validate_vn_panel(panel)
+
+
+def test_annual_yield_is_converted_to_monthly_decimal():
+    monthly = annual_yield_percent_to_monthly(12.0)
+    assert (1.0 + monthly) ** 12 == pytest.approx(1.12)
+
+
+def test_point_in_time_formation_uses_only_announced_information():
+    membership = pd.DataFrame({
+        "period": [1],
+        "ticker": ["AAA.HM"],
+        "formation_market_cap": [100.0],
+        "formation_date": pd.to_datetime(["2024-06-30"]),
+        "holding_start": pd.to_datetime(["2024-08-31"]),
+        "holding_end": pd.to_datetime(["2025-01-31"]),
+        "complete": [True],
+    })
+    events = pd.DataFrame({
+        "ticker": ["AAA.HM", "AAA.HM"],
+        "information_date": pd.to_datetime(["2024-04-30", "2024-07-31"]),
+        "source_date": pd.to_datetime(["2024-03-31", "2024-06-30"]),
+        "book_equity": [80.0, 120.0],
+        "operating_profitability": [0.10, 0.20],
+        "investment": [0.05, 0.07],
+    })
+    result = build_point_in_time_formations(membership, events)
+    row = result.iloc[0]
+    assert row["information_date"] == pd.Timestamp("2024-04-30")
+    assert row["book_to_market"] == pytest.approx(0.8)
+    assert row["operating_profitability"] == pytest.approx(0.10)
+    assert not row["look_ahead"]
+
+
+def test_conflicting_fundamental_event_is_not_eligible():
+    membership = pd.DataFrame({
+        "period": [1],
+        "ticker": ["AAA.HM"],
+        "formation_market_cap": [100.0],
+        "formation_date": pd.to_datetime(["2024-06-30"]),
+        "holding_start": pd.to_datetime(["2024-08-31"]),
+        "holding_end": pd.to_datetime(["2025-01-31"]),
+        "complete": [True],
+    })
+    events = pd.DataFrame({
+        "ticker": ["AAA.HM"],
+        "information_date": pd.to_datetime(["2024-04-30"]),
+        "source_date": pd.to_datetime(["2024-03-31"]),
+        "book_equity": [80.0],
+        "operating_profitability": [0.10],
+        "investment": [0.05],
+        "event_conflict": [True],
+    })
+    row = build_point_in_time_formations(membership, events).iloc[0]
+    assert not row["eligible_bm"]
+    assert not row["eligible_op"]
+    assert not row["eligible_inv"]
+    assert row["reason_bm"] == "conflicting_fundamental_event"
+
+
+def test_return_reconciliation_prefers_consecutive_month_price_return():
+    period_returns = pd.DataFrame({
+        "period": [1, 1],
+        "ticker": ["AAA.HM", "BBB.HM"],
+        "date": pd.to_datetime(["2024-02-29", "2024-02-29"]),
+        "return": [1.50, 0.07],
+    })
+    monthly_prices = pd.DataFrame({
+        "ticker": ["AAA.HM", "BBB.HM"],
+        "date": pd.to_datetime(["2024-02-29", "2024-02-29"]),
+        "close": [110.0, 20.0],
+        "previous_close": [100.0, np.nan],
+        "price_return": [0.10, np.nan],
+    })
+    result = reconcile_period_returns(period_returns, monthly_prices)
+    aaa = result.loc[result["ticker"].eq("AAA.HM")].iloc[0]
+    bbb = result.loc[result["ticker"].eq("BBB.HM")].iloc[0]
+    assert aaa["return"] == pytest.approx(0.10)
+    assert aaa["reported_return"] == pytest.approx(1.50)
+    assert aaa["return_source"] == "close_eom"
+    assert bbb["return"] == pytest.approx(0.07)
+    assert bbb["return_source"] == "reported_fallback"
+
+
+def test_annual_july_panel_uses_june_formation_and_twelve_month_holding():
+    supplied_periods = pd.DataFrame({
+        "Ky": [2, 3, 4],
+        "formation_date": pd.to_datetime(["2018-06-30", "2018-12-31", "2019-06-30"]),
+    })
+    supplied_membership = pd.DataFrame({
+        "period": [2, 2, 3, 4, 4],
+        "ticker": ["AAA.HM", "BBB.HM", "AAA.HM", "AAA.HM", "BBB.HM"],
+        "formation_market_cap": [100.0, 200.0, 110.0, 120.0, 220.0],
+        "formation_date": pd.to_datetime([
+            "2018-06-30", "2018-06-30", "2018-12-31", "2019-06-30", "2019-06-30"
+        ]),
+    })
+    months = pd.period_range("2018-07", "2019-09", freq="M")
+    market_monthly = pd.DataFrame({
+        "month": months,
+        "VN100": 0.01,
+        "VNINDEX": 0.01,
+        "VN30": 0.01,
+    })
+    price_rows = []
+    for ticker in ["AAA.HM", "BBB.HM"]:
+        for month in months:
+            price_rows.append({
+                "ticker": ticker,
+                "month": month,
+                "reported_return": 0.02,
+            })
+    monthly_prices = pd.DataFrame(price_rows)
+
+    periods, membership, returns = build_annual_july_panel(
+        supplied_periods,
+        supplied_membership,
+        monthly_prices,
+        market_monthly,
+    )
+    assert periods["period"].tolist() == [2018, 2019]
+    assert periods["complete"].tolist() == [True, False]
+    assert set(membership["period"]) == {2018}
+    assert returns["date"].min() == pd.Timestamp("2018-07-31")
+    assert returns["date"].max() == pd.Timestamp("2019-06-30")
+    assert len(returns) == 24

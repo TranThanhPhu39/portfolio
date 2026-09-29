@@ -11,3 +11,4 @@ pandas-datareader==0.10.0
 yfinance>=0.2.54,<2.0
 matplotlib>=3.9,<4.0
 pytest>=8.0,<10.0
+openpyxl>=3.1,<4.0
