@@ -132,7 +132,7 @@ def read_factors(path: Path) -> pd.DataFrame:
     return frame.set_index("Date").sort_index()
 
 
-def read_universe(path: Path) -> list[str]:
+def read_universe(path: Path) -> tuple[list[str], str]:
     if not path.is_file():
         raise FileNotFoundError(f"Universe file not found: {path}")
     frame = pd.read_csv(path)
@@ -144,26 +144,50 @@ def read_universe(path: Path) -> list[str]:
     output = tickers.tolist()
     if len(output) != ASSET_COUNT or len(set(output)) != ASSET_COUNT:
         raise ValueError(f"Universe must contain exactly {ASSET_COUNT} unique tickers")
-    return output
+    if "selection_rule" in frame.columns:
+        rules = frame["selection_rule"].dropna().astype(str).unique().tolist()
+        if len(rules) != 1:
+            raise ValueError("Universe file must contain one consistent selection_rule")
+        rule = rules[0]
+    else:
+        rule = "Explicit 30-ticker universe supplied; document its selection rationale."
+    return output, rule
 
 
-def choose_provisional_universe(
-    returns: pd.DataFrame, sample_dates: pd.DatetimeIndex
-) -> list[str]:
-    sample = returns.loc[returns["date"].isin(sample_dates)]
-    coverage = returns.groupby("ticker", as_index=False).agg(months=("date", "nunique"))
-    sample_coverage = sample.groupby("ticker", as_index=False).agg(
-        sample_months=("date", "nunique")
-    )
-    complete = coverage.merge(sample_coverage, on="ticker", how="left")
-    complete = complete.loc[complete["sample_months"].eq(len(sample_dates))]
-    complete = complete.sort_values(["months", "ticker"], ascending=[False, True])
-    if len(complete) < ASSET_COUNT:
+def apply_market_proxy(
+    returns: pd.DataFrame,
+    factors: pd.DataFrame,
+    market_proxy: str,
+) -> pd.DataFrame:
+    if market_proxy == "VNINDEX":
+        return factors.copy()
+    if market_proxy != "VN100":
+        raise ValueError(f"Unsupported market proxy: {market_proxy}")
+    if "VN100" not in returns.columns:
+        raise KeyError("Return panel has no VN100 monthly market return column")
+    market_rows = returns[["date", "VN100"]].copy()
+    market_rows["VN100"] = pd.to_numeric(market_rows["VN100"], errors="raise")
+    if not np.isfinite(market_rows["VN100"].dropna().to_numpy(dtype=float)).all():
+        raise ValueError("VN100 monthly market return contains non-finite values")
+    distinct = market_rows.groupby("date")["VN100"].nunique(dropna=True)
+    inconsistent = distinct.loc[distinct.ne(1)]
+    if not inconsistent.empty:
         raise ValueError(
-            f"Only {len(complete)} tickers cover all {len(sample_dates)} months; "
-            f"need {ASSET_COUNT} for a balanced sample"
+            "VN100 market return is not constant across ticker rows for dates: "
+            + ", ".join(date.strftime("%Y-%m-%d") for date in inconsistent.index[:10])
         )
-    return complete.head(ASSET_COUNT)["ticker"].tolist()
+    market = market_rows.drop_duplicates("date").set_index("date")["VN100"]
+    market = market.reindex(factors.index)
+    if market.isna().any():
+        missing = market.index[market.isna()]
+        raise ValueError(
+            "VN100 market return missing for factor dates: "
+            + ", ".join(date.strftime("%Y-%m-%d") for date in missing[:10])
+        )
+    adjusted = factors.copy()
+    adjusted["MARKET"] = market
+    adjusted["MKT_RF"] = market - adjusted["RF"]
+    return adjusted
 
 
 def markdown_table(frame: pd.DataFrame, columns: list[str], digits: int = 4) -> str:
@@ -184,12 +208,53 @@ def markdown_table(frame: pd.DataFrame, columns: list[str], digits: int = 4) -> 
     return "\n".join(lines)
 
 
+def market_proxy_sensitivity(
+    returns: pd.DataFrame,
+    raw_factors: pd.DataFrame,
+    asset_returns: pd.DataFrame,
+    sample_dates: pd.DatetimeIndex,
+) -> pd.DataFrame:
+    rows: list[dict] = []
+    for proxy in ("VN100", "VNINDEX"):
+        proxy_factors = apply_market_proxy(returns, raw_factors, proxy).reindex(
+            sample_dates
+        )
+        for model, factor_columns in MODEL_FACTORS.items():
+            factor_data = proxy_factors.loc[:, ["RF", *factor_columns]]
+            fits = [
+                run_factor_regression(
+                    asset_returns[ticker], factor_data, factor_columns
+                )
+                for ticker in asset_returns.columns
+            ]
+            grs = grs_test(asset_returns, factor_data, factor_columns)
+            vif = calculate_vif(proxy_factors, factor_columns)
+            rows.append(
+                {
+                    "market_proxy": proxy,
+                    "model": model,
+                    "n_assets": len(fits),
+                    "t_months": int(fits[0].nobs),
+                    "mean_abs_alpha_pct_per_month": float(
+                        np.mean([abs(float(fit.params["const"])) for fit in fits])
+                        * 100.0
+                    ),
+                    "mean_r_squared": float(np.mean([fit.rsquared for fit in fits])),
+                    "grs_f": grs.statistic,
+                    "grs_p_value": grs.p_value,
+                    "max_rhs_vif": float(vif["vif"].max()),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
 def run(args: argparse.Namespace) -> None:
     source_verification = verify_factor_commit(
         args.returns, args.factors, args.factor_commit
     )
     returns = read_returns(args.returns)
-    factors = read_factors(args.factors)
+    raw_factors = read_factors(args.factors)
+    factors = apply_market_proxy(returns, raw_factors, args.market_proxy)
     start = pd.Period(args.start, freq="M")
     end = pd.Period(args.end, freq="M")
     if end < start:
@@ -207,12 +272,12 @@ def run(args: argparse.Namespace) -> None:
     ).all():
         raise ValueError("Chosen factor sample contains non-finite values")
 
-    if args.universe is None:
-        tickers = choose_provisional_universe(returns, sample_dates)
-        sample_status = "PROVISIONAL_COVERAGE_SAMPLE"
-    else:
-        tickers = read_universe(args.universe)
-        sample_status = "EXPLICIT_UNIVERSE_REVIEW_REQUIRED"
+    tickers, universe_rule = read_universe(args.universe)
+    sample_status = (
+        "KTL_BASELINE_JUNE_2021_FORMATION_TOP30"
+        if args.universe_status == "team-baseline"
+        else "GROUP_APPROVED_UNIVERSE"
+    )
 
     wide = returns.pivot(index="date", columns="ticker", values="return")
     missing_tickers = sorted(set(tickers).difference(wide.columns))
@@ -371,6 +436,10 @@ def run(args: argparse.Namespace) -> None:
         hml_row[f"alpha_z_hac{lag}"] = float(robust.tvalues[0])
         hml_row[f"alpha_p_hac{lag}"] = float(robust.pvalues[0])
 
+    market_sensitivity = market_proxy_sensitivity(
+        returns, raw_factors, asset_returns, sample_dates
+    )
+
     selected_input = returns.loc[
         returns["ticker"].isin(tickers) & returns["date"].isin(sample_dates)
     ].copy()
@@ -383,6 +452,8 @@ def run(args: argparse.Namespace) -> None:
         "sample_start": sample_dates.min().strftime("%Y-%m-%d"),
         "sample_end": sample_dates.max().strftime("%Y-%m-%d"),
         "assets": len(tickers),
+        "selection_rule": universe_rule,
+        "universe_status": args.universe_status,
         "selected_return_rows": int(len(selected_input)),
         "return_sources": (
             selected_input["return_source"].value_counts().to_dict()
@@ -397,6 +468,12 @@ def run(args: argparse.Namespace) -> None:
         ),
         "vif_over_10_count": int(vif_results["above_10"].sum()),
         "factor_team_market_proxy": "VNINDEX",
+        "econometrics_market_proxy": args.market_proxy,
+        "market_factor_construction": (
+            "Factor Team MKT_RF based on VNINDEX."
+            if args.market_proxy == "VNINDEX"
+            else "Monthly VN100 return from the matched return panel minus Factor Team RF."
+        ),
         "factor_team_rf_proxy": "1Y government yield converted to effective monthly return",
         "factor_team_schedule": "June formation, July-to-June holding",
         "factor_team_weighting": "lagged market capitalization",
@@ -406,7 +483,7 @@ def run(args: argparse.Namespace) -> None:
         "returns_sha256": sha256(args.returns),
         "factors_sha256": sha256(args.factors),
         "factor_source_verification": source_verification,
-        "universe_sha256": sha256(args.universe) if args.universe else None,
+        "universe_sha256": sha256(args.universe),
         "python": sys.version.split()[0],
         "pandas": pd.__version__,
     }
@@ -422,6 +499,11 @@ def run(args: argparse.Namespace) -> None:
     coefficients.to_csv(args.output_dir / "coefficient_detail.csv", index=False, float_format="%.10g")
     grs_results.to_csv(args.output_dir / "grs_summary.csv", index=False, float_format="%.10g")
     vif_results.to_csv(args.output_dir / "vif.csv", index=False, float_format="%.10g")
+    market_sensitivity.to_csv(
+        args.output_dir / "market_proxy_sensitivity.csv",
+        index=False,
+        float_format="%.10g",
+    )
     table5.to_csv(args.output_dir / "table5_style_summary.csv", index=False, float_format="%.10g")
     table7.to_csv(args.output_dir / "table7_style_assets.csv", index=False, float_format="%.10g")
     pd.DataFrame([hml_row]).to_csv(
@@ -449,14 +531,23 @@ def run(args: argparse.Namespace) -> None:
 - Returns: `{display_path(args.returns)}`; factors: `{display_path(args.factors)}`. Source commit `{args.factor_commit}`; tracked-blob verification: `{source_verification['verified']}` ({source_verification['reason']}).
 - Exactly {len(tickers)} assets and {len(sample_dates)} common monthly observations ({qa['sample_start']} to {qa['sample_end']}). All three models and all three GRS tests use this same sample.
 - Return, RF, and factors are decimals in the input. `run_factor_regression()` subtracts RF once. CAPM uses MKT_RF; FF3 uses SMB; FF5 uses the separate SMB_FF5 plus HML, RMW, CMA.
-- The Factor Team's current definitions use VNINDEX for MKT, effective monthly conversion from the 1Y yield for RF, June formation and July-to-June holding, and lagged market-cap weights. These choices differ from some options in the original project brief and need method sign-off for a final research claim.
-- Universe selection: {('30 tickers with complete common-period returns, ranked by total source-month coverage then ticker, for a technical provisional run' if args.universe is None else 'explicit list from ' + str(args.universe))}. The sample label above does not itself signify leader approval.
+- MKT uses `{args.market_proxy}`. {('MKT_RF is the Factor Team series based on VNINDEX.' if args.market_proxy == 'VNINDEX' else 'MKT_RF is recomputed from the monthly VN100 return column in the matched return panel minus the Factor Team RF.')}
+- RF remains the Factor Team's effective monthly conversion from a 1Y yield; portfolio formation is June with July-to-June holding and lagged total market-cap weights. See `docs/vn_econometrics_method_choices.md` for the baseline method and its basis.
+- Universe selection: {universe_rule}. The Econometrics Team chose the June 2021 formation market-cap rule before the July 2021–June 2026 return window; status: `{args.universe_status}`.
 
 ## Summary like Fama–French Table 5
 
 {markdown_table(table5, ['model', 't_months', 'n_assets', 'k_factors', 'grs_f', 'p_value', 'mean_abs_alpha_pct', 'mean_r_squared'])}
 
 The paper's Table 5 uses 25 or 32 sorted US portfolios; this table uses 30 VN stocks. The figures are not numerical replication of the paper.
+
+At the 5% level, the GRS p-values do not reject the joint zero-alpha null for CAPM, FF3, or FF5 in this 30-stock, 60-month sample. This is a failure to reject for this sample, not proof that a model is true.
+
+## Market proxy sensitivity
+
+Both VN100 and VNINDEX were run on the same assets, months, RF, and SMB/HML/RMW/CMA series:
+
+{markdown_table(market_sensitivity, ['market_proxy', 'model', 'mean_abs_alpha_pct_per_month', 'mean_r_squared', 'grs_f', 'grs_p_value', 'max_rhs_vif'])}
 
 ## Inference and diagnostics
 
@@ -468,9 +559,9 @@ The paper's Table 5 uses 25 or 32 sorted US portfolios; this table uses 30 VN st
 
 ## Outputs and status
 
-`asset_model_summary.csv`, `coefficient_detail.csv`, `grs_summary.csv`, `vif.csv`, `table5_style_summary.csv`, `table7_style_assets.csv`, `hml_redundancy.csv`, `selected_tickers.csv`, `sample_months.csv`, `model_summaries.txt`, and `run_manifest.json` are generated by `scripts/run_vn_econometrics.py`.
+`asset_model_summary.csv`, `coefficient_detail.csv`, `grs_summary.csv`, `vif.csv`, `market_proxy_sensitivity.csv`, `table5_style_summary.csv`, `table7_style_assets.csv`, `hml_redundancy.csv`, `selected_tickers.csv`, `sample_months.csv`, `model_summaries.txt`, and `run_manifest.json` are generated by `scripts/run_vn_econometrics.py`.
 
-This is a technical result for review. To label it final, the group must lock the LHS universe and approve the current MKT/RF/accounting definitions or provide revised Factor Team outputs.
+This is the Econometrics Team's baseline result. The 30-asset list is fixed using information at the June 2021 formation and all selected returns are present for the following 60 months. Factor columns follow the Factor Team's versioned output; method choices and deviations from the original project brief are documented in `docs/vn_econometrics_method_choices.md`.
 """
     (args.output_dir / "run_report.md").write_text(report, encoding="utf-8")
     print(f"status={sample_status}")
@@ -494,13 +585,30 @@ def main() -> None:
         type=Path,
         default=ROOT / "outputs" / "vn_period_factors" / "vn100_factors_monthly.csv",
     )
-    parser.add_argument("--universe", type=Path, help="CSV with exactly 30 ticker values")
+    parser.add_argument(
+        "--universe",
+        type=Path,
+        default=ROOT / "config" / "vn_econometrics_universe.csv",
+        help="CSV with exactly 30 tickers and a documented selection rule",
+    )
+    parser.add_argument(
+        "--universe-status",
+        choices=["team-baseline", "group-approved"],
+        default="team-baseline",
+        help="Record whether this is the Econometrics Team baseline or a group-approved universe",
+    )
     parser.add_argument("--start", default="2021-07", help="First common sample month YYYY-MM")
     parser.add_argument("--end", default="2026-06", help="Last common sample month YYYY-MM")
     parser.add_argument(
+        "--market-proxy",
+        choices=["VN100", "VNINDEX"],
+        default="VN100",
+        help="Market series for MKT-RF; project baseline uses VN100",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
-        default=ROOT / "outputs" / "vn_econometrics_provisional",
+        default=ROOT / "outputs" / "vn_econometrics_baseline",
     )
     parser.add_argument(
         "--factor-commit",
@@ -513,8 +621,7 @@ def main() -> None:
     args = parser.parse_args()
     args.returns = args.returns.resolve()
     args.factors = args.factors.resolve()
-    if args.universe is not None:
-        args.universe = args.universe.resolve()
+    args.universe = args.universe.resolve()
     args.output_dir = args.output_dir.resolve()
     run(args)
 

@@ -1,5 +1,5 @@
 {
-  "sample_status": "PROVISIONAL_COVERAGE_SAMPLE",
+  "sample_status": "KTL_BASELINE_JUNE_2021_FORMATION_TOP30",
   "source_return_rows": 9600,
   "source_return_tickers": 145,
   "source_factor_months": 96,
@@ -7,14 +7,18 @@
   "sample_start": "2021-07-31",
   "sample_end": "2026-06-30",
   "assets": 30,
+  "selection_rule": "Top 30 VN100 members by June 2021 formation market cap; sample starts July 2021",
+  "universe_status": "team-baseline",
   "selected_return_rows": 1800,
   "return_sources": {
     "close_eom": 1800
   },
   "selected_abs_return_over_100pct": 0,
-  "selected_reported_price_gap_over_1pp": 86,
+  "selected_reported_price_gap_over_1pp": 7,
   "vif_over_10_count": 0,
   "factor_team_market_proxy": "VNINDEX",
+  "econometrics_market_proxy": "VN100",
+  "market_factor_construction": "Monthly VN100 return from the matched return panel minus Factor Team RF.",
   "factor_team_rf_proxy": "1Y government yield converted to effective monthly return",
   "factor_team_schedule": "June formation, July-to-June holding",
   "factor_team_weighting": "lagged market capitalization",
@@ -31,7 +35,7 @@
       "factors": "a333530b7e71670b93639ce45e0a77d4d0e76ade"
     }
   },
-  "universe_sha256": null,
+  "universe_sha256": "ae5bc8892995bdacd8a6b3aec107c8bcfac9c49c6acb55702e8a0f7837a06239",
   "python": "3.12.14",
   "pandas": "2.2.0"
 }
