@@ -1,18 +1,29 @@
 # VN100 period factor pipeline
 
-The pipeline reads the two supplied ZIP archives directly. It does not
-extract, overwrite, or otherwise modify the raw files.
+The pipeline reads ZIP archives directly. It accepts two separate archives
+with files at the ZIP root, or the same combined archive for both arguments
+when the period CSVs and master workbooks are in subdirectories. ZIP members
+are matched by unique basename. It does not extract, overwrite, or otherwise
+modify the raw files.
 
 ## Run
 
-The builder requires two source archives: one with the period CSVs at the ZIP
-root, and one with the master workbook and RF workbook at the ZIP root. Supply
-their local paths as its two positional arguments. The originally supplied
-archives are not tracked in this repository; the generated CSVs below are.
+Supply the period archive and master archive as its two positional arguments.
+For a combined archive, pass the same path twice. Raw archives are not tracked
+in this repository; the generated CSVs below are.
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\build_vn_period_factors.py PERIOD_ARCHIVE.zip MASTER_ARCHIVE.zip
 ```
+
+The user-supplied `drive-download-20260929T092926Z-1-001.zip` is a combined
+archive. Passing it twice with default settings rebuilt all 11 CSV outputs:
+eight matched the versioned Factor Team CSVs byte-for-byte after newline
+normalization; the factor, factor-summary, and correlation CSVs had the same
+shape/missingness and maximum numeric differences below `5e-16` from floating
+point formatting. The archived input itself remains unmodified. Store the
+source archive and its SHA-256 separately when handing the project to another
+machine.
 
 Use `--help` to see all configuration options.
 

@@ -6,7 +6,7 @@
 - Factor Team source: `feature/factor-team-tasks-1-7` commit `926f53deaaf0c9cc2e75a540fb789eb1f811d82a`.
 - Integration merge: `7695fde` on `vn-econometrics-integration`. The merge retained the econometrics modules and Factor pipeline. The three conflicts were `.gitignore`, `requirements.txt`, and `scripts/get_test_data.py`; the resolved test-data downloader remains the `data/test/` version from the econometrics base.
 - Factor Team's demo snapshot was moved from root `test_data/` into `data/test/factor_demo/` to match the repository structure; `scripts/run_us_factor_demo.py` was updated and executed successfully.
-- The local ZIP supplied earlier at `E:\Downloads` is a separate packaged snapshot. This run uses the Factor Team's matched `vn100_returns_clean.csv` and `vn100_factors_monthly.csv` from the same source commit. The run manifest checks their Git blobs after line-ending normalization and records SHA-256 values.
+- The user-supplied combined ZIP at `E:\Downloads\drive-download-20260929T092926Z-1-001.zip` has SHA-256 `2e0627c061811f96eadbf57a13df6629473b715dd6eb71e9b09e636d6d56180c`. A raw rebuild from this archive reproduced the versioned Factor Team outputs. The econometrics run reads the Factor Team's matched `vn100_returns_clean.csv` and `vn100_factors_monthly.csv` from the same source commit; its manifest checks their Git blobs after line-ending normalization and records SHA-256 values.
 
 ## Executed reproducibility checks
 
@@ -20,6 +20,7 @@
 | VN models | `scripts/run_vn_econometrics.py` | 90 OLS fits (30 assets × 3 models), 360 coefficient rows with HAC lag 12/6, 9 VIF rows, 3 GRS tests, one HML spanning regression, and Table 5/7-style outputs. All use the same 60 month ends from 2021-07 to 2026-06. |
 | VN cross-check | Prior Factor Team smoke snapshot in the original checkout | The new runner's 90 alpha values, OLS t-statistics, R² values, and three GRS F/p pairs match the prior smoke run exactly for the same 30 tickers. |
 | Explicit-universe CLI | `scripts/run_vn_econometrics.py --universe ...` | Executed with the exported 30-ticker list in a temporary output directory; produced the same models/GRS and labelled the sample as requiring review. |
+| Raw factor rebuild | `scripts/build_vn_period_factors.py` with the user-supplied combined ZIP passed as both inputs | Rebuilt 96 factor months, 800 formation rows, and all 11 output CSVs without altering the archive. Eight CSVs matched the Factor Team commit byte-for-byte after newline normalization; the other three matched in shape/missingness with a maximum numeric gap of `4.44e-16`. |
 
 The VM's pinned runtime used here is Python 3.12.14, pandas 2.2.0, numpy 1.26.0, scipy 1.13.0, statsmodels 0.14.0, openpyxl 3.1.5, and vnstock 3.5.0. `pytest` is absent from this runtime, so no pytest suite was run; the entry-point and result reconciliations above are the executed checks.
 
@@ -35,6 +36,6 @@ The selection is technical: 30 stocks with full common-period returns, ranked by
 
 ## Pending before research sign-off
 
-The project lead needs to approve the 30 test assets or portfolios and the Factor Team's current method choices: VNINDEX market proxy, effective monthly RF from 1Y yield, latest public accounting statement at June formation, total market-cap weighting, and price-derived returns. These differ from options in the supplied project brief. FF5 has 60 complete months; a longer FF5 period requires additional point-in-time OP/Inv inputs. The exact two source ZIPs used to regenerate Factor Team output from raw are not in this checkout; the versioned processed CSV pair is sufficient to rerun the econometrics stage.
+The project lead needs to approve the 30 test assets or portfolios and the Factor Team's current method choices: VNINDEX market proxy, effective monthly RF from 1Y yield, latest public accounting statement at June formation, total market-cap weighting, and price-derived returns. These differ from options in the supplied project brief. FF5 has 60 complete months; a longer FF5 period requires additional point-in-time OP/Inv inputs. The user-supplied combined ZIP now reproduces the versioned Factor Team output; it is held outside the Git checkout and must accompany a full raw-to-output handoff on another machine.
 
 The separate Method Spec remains an unfilled form for the designated writer. Its formatting difference from the supplied template is a documentation follow-up, not an inference made by this runner.

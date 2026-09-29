@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from io import BytesIO
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import zipfile
 
 import numpy as np
@@ -37,7 +37,17 @@ def annual_yield_percent_to_monthly(rate: pd.Series | float) -> pd.Series | floa
 
 
 def _read_csv_from_zip(archive: zipfile.ZipFile, name: str) -> pd.DataFrame:
-    raw = archive.read(name)
+    exact = name if name in archive.namelist() else None
+    if exact is None:
+        basename = PurePosixPath(name).name.casefold()
+        matches = [
+            entry for entry in archive.namelist()
+            if PurePosixPath(entry).name.casefold() == basename
+        ]
+        if len(matches) != 1:
+            raise ValueError(f"expected one ZIP entry named {name!r}, found {matches}")
+        exact = matches[0]
+    raw = archive.read(exact)
     for encoding in ("utf-8-sig", "utf-8", "cp1258", "latin1"):
         try:
             return pd.read_csv(BytesIO(raw), encoding=encoding)
@@ -142,7 +152,10 @@ def load_period_archive(
 
 
 def _xlsx_bytes(archive: zipfile.ZipFile, predicate) -> bytes:
-    matches = [name for name in archive.namelist() if predicate(name)]
+    matches = [
+        name for name in archive.namelist()
+        if predicate(PurePosixPath(name).name)
+    ]
     if len(matches) != 1:
         raise ValueError(f"expected one matching workbook, found {matches}")
     return archive.read(matches[0])
@@ -236,7 +249,9 @@ def load_master_archive(
             conflict_keys, on=["ticker", "information_date"], how="left",
             validate="one_to_one",
         )
-        events["event_conflict"] = events["event_conflict"].fillna(False).astype(bool)
+        events["event_conflict"] = (
+            events["event_conflict"].astype("boolean").fillna(False).astype(bool)
+        )
     else:
         events["event_conflict"] = False
 
@@ -465,7 +480,9 @@ def build_point_in_time_formations(
         joined["ticker"] = ticker
         matched.append(joined)
     formation = pd.concat(matched, ignore_index=True)
-    formation["event_conflict"] = formation["event_conflict"].fillna(False).astype(bool)
+    formation["event_conflict"] = (
+        formation["event_conflict"].astype("boolean").fillna(False).astype(bool)
+    )
     if sectors is not None and not sectors.empty:
         formation = formation.merge(sectors, on="ticker", how="left", validate="many_to_one")
     else:

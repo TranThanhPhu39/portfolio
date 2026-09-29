@@ -60,6 +60,8 @@ The separate Factor Team demonstration snapshot lives in `data/test/factor_demo/
 
 The paired Factor Team inputs are `outputs/vn_period_factors/vn100_returns_clean.csv` and `outputs/vn_period_factors/vn100_factors_monthly.csv`. Returns, RF, and factors are stored as decimals. The current factor file has 96 months of CAPM/FF3 inputs and 60 months complete for FF5 (2021-07 through 2026-06). The baseline comparison uses those same 60 months for all three models.
 
+The Factor pipeline can also rebuild these files directly from the user's combined ZIP by passing that archive as both source arguments. Its 11 rebuilt CSVs were reconciled to the committed Factor Team outputs; details and the source hash are in `docs/vn_econometrics_implementation_audit.md`.
+
 From the repository root:
 
 ```powershell
