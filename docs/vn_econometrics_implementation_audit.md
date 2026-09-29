@@ -24,6 +24,20 @@
 
 The VM's pinned runtime used here is Python 3.12.14, pandas 2.2.0, numpy 1.26.0, scipy 1.13.0, statsmodels 0.14.0, openpyxl 3.1.5, and vnstock 3.5.0. `pytest` is absent from this runtime, so no pytest suite was run; the entry-point and result reconciliations above are the executed checks.
 
+## Checklist status, Steps 1–7
+
+| Step | Status | Evidence against the checklist output / DoD | Remaining action |
+|---|---|---|---|
+| 1. Understand the 25 LHS portfolios | PASS | `outputs/full_audit_steps1_6.md` maps the 25 Size×B/M columns to rows and columns; it identifies `SMALL LoBM` as the selected test LHS. | None for the test-data DoD. |
+| 2. Generic CAPM/FF3/FF5 regression | PASS | `src/models/regressions.py` returns statsmodels results; CAPM/FF3/FF5 each print summaries on the 606-month sample. | None for the test-data DoD. |
+| 3. Compare three models on one LHS | PASS | `outputs/step3_model_comparison.csv` reports alpha, t-stat, R² and N; R² is 0.6449 < 0.9171 < 0.9319 on the required US sample. | This ordering is not imposed on VN because FF3 and FF5 use different SMB series. |
+| 4. Compare with Fama–French (2015) | PASS WITH LIMITATION | `outputs/step4_audit.md` and the Table 5/7 comparison CSVs report close test-sample results and disclose that the current LHS vintage is not proven to be the exact 2015 file. | Do not describe the comparison as an exact historical replication. |
+| 5. GRS on all 25 LHS portfolios | PASS | `outputs/step5_grs_results.csv` contains GRS F and p-values for CAPM/FF3/FF5, with vintage sensitivity; the independent implementation agrees numerically. | None for the test-data DoD. |
+| 6. Newey–West and VIF | PASS | `outputs/step6_hac_results.csv` contains lag 12 and lag 6; `outputs/step6_vif.csv` reports all factors below 10. | None for the test-data DoD. |
+| 7. VN CAPM/FF3/FF5, GRS, alpha/t | TECHNICAL RUN PASS; FINAL SIGN-OFF PENDING | `outputs/vn_econometrics_provisional/` has 90 asset/model results, 30×22 Table 7-style values including alpha, beta, OLS t, HAC z and R², three GRS results, HAC/VIF and HML spanning. Raw ZIP rebuild reproduces the Factor Team inputs. | Group lead must approve the 30-asset LHS and current MKT/RF/accounting/weighting choices before this is called the final research result. |
+
+The original checklist's `Người phụ trách`, `Trạng thái`, and `Ghi chú` cells for these rows are blank. The PASS labels above reflect repository evidence, not entries already approved in the workbook. The Method Spec is a separate deliverable: it remains unfilled as requested, and its current DOCX structure still differs from the supplied template.
+
 ## Current provisional VN result
 
 | Model | N assets | T months | K factors | Mean absolute alpha (%/month) | Mean R² | GRS F | GRS p |
