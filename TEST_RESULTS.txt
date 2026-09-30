@@ -3,74 +3,18 @@ NumPy 1.26.0
 pandas 2.2.0
 SciPy 1.13.0
 
-test_benchmark_missing_date_rejected (test_backtest.BacktestTests.test_benchmark_missing_date_rejected) ... ok
-test_buy_hold_drift_and_turnover (test_backtest.BacktestTests.test_buy_hold_drift_and_turnover) ... ok
-test_crossing_returns_bracket_not_exact (test_backtest.BacktestTests.test_crossing_returns_bracket_not_exact) ... ok
-test_daily_returns_compounded (test_backtest.BacktestTests.test_daily_returns_compounded) ... ok
-test_drawdown_includes_initial_value (test_backtest.BacktestTests.test_drawdown_includes_initial_value) ... ok
-test_equal_dates_all_fee_scenarios (test_backtest.BacktestTests.test_equal_dates_all_fee_scenarios) ... ok
-test_future_changes_do_not_change_past_weights (test_backtest.BacktestTests.test_future_changes_do_not_change_past_weights) ... ok
-test_initial_fee_self_financing (test_backtest.BacktestTests.test_initial_fee_self_financing) ... ok
-test_missing_month_rejected (test_backtest.BacktestTests.test_missing_month_rejected) ... ok
-test_missing_return_rejected (test_backtest.BacktestTests.test_missing_return_rejected) ... ok
-test_nan_rate_rejected (test_backtest.BacktestTests.test_nan_rate_rejected) ... ok
-test_negative_weight_rejected (test_backtest.BacktestTests.test_negative_weight_rejected) ... ok
-test_no_advantage_is_not_threshold (test_backtest.BacktestTests.test_no_advantage_is_not_threshold) ... ok
-test_no_rebalance_does_not_restore_target (test_backtest.BacktestTests.test_no_rebalance_does_not_restore_target) ... ok
-test_no_trade_no_fee (test_backtest.BacktestTests.test_no_trade_no_fee) ... ok
-test_optimizer_failure_propagates (test_backtest.BacktestTests.test_optimizer_failure_propagates) ... ok
-test_sharpe_excess_sample_sd (test_backtest.BacktestTests.test_sharpe_excess_sample_sd) ... ok
-test_switch_buy_and_sell_fee (test_backtest.BacktestTests.test_switch_buy_and_sell_fee) ... ok
-test_ticker_order_aligned (test_backtest.BacktestTests.test_ticker_order_aligned) ... ok
-test_training_window_and_lag (test_backtest.BacktestTests.test_training_window_and_lag) ... ok
-test_wrong_weight_labels_rejected (test_backtest.BacktestTests.test_wrong_weight_labels_rejected) ... ok
-test_zero_cost (test_backtest.BacktestTests.test_zero_cost) ... ok
-test_zero_volatility_undefined (test_backtest.BacktestTests.test_zero_volatility_undefined) ... ok
-test_entry_waits_for_complete_training (test_dynamic.DynamicTests.test_entry_waits_for_complete_training) ... ok
-test_exit_liquidation_is_charged (test_dynamic.DynamicTests.test_exit_liquidation_is_charged) ... ok
-test_future_returns_do_not_change_earlier_weights (test_dynamic.DynamicTests.test_future_returns_do_not_change_earlier_weights) ... ok
-test_missing_held_return_rejected (test_dynamic.DynamicTests.test_missing_held_return_rejected) ... ok
-test_missing_unheld_return_allowed (test_dynamic.DynamicTests.test_missing_unheld_return_allowed) ... ok
-test_self_financing (test_dynamic.DynamicTests.test_self_financing) ... ok
-test_builtin_optimizers_real_runner_connection (test_pipeline.PipelineTests.test_builtin_optimizers_real_runner_connection) ... ok
-test_duplicate_input_rejected (test_pipeline.PipelineTests.test_duplicate_input_rejected) ... ok
-test_dynamic_universe_rejected (test_pipeline.PipelineTests.test_dynamic_universe_rejected) ... ok
-test_missing_rf_fails_before_export (test_pipeline.PipelineTests.test_missing_rf_fails_before_export) ... ok
-test_non_month_end_rejected (test_pipeline.PipelineTests.test_non_month_end_rejected) ... ok
-test_required_fee_scenarios (test_pipeline.PipelineTests.test_required_fee_scenarios) ... ok
-test_two_strategies_full_export_and_no_overwrite (test_pipeline.PipelineTests.test_two_strategies_full_export_and_no_overwrite) ... ok
-test_hand_calculated_returns (test_portfolio.Stage1Prices.test_hand_calculated_returns) ... ok
-test_missing_month_rejected (test_portfolio.Stage1Prices.test_missing_month_rejected) ... ok
-test_missing_not_filled (test_portfolio.Stage1Prices.test_missing_not_filled) ... ok
-test_zero_price_rejected (test_portfolio.Stage1Prices.test_zero_price_rejected) ... ok
-test_known_mean_and_sample_covariance (test_portfolio.Stage2Estimation.test_known_mean_and_sample_covariance) ... ok
-test_ridge_is_explicit (test_portfolio.Stage2Estimation.test_ridge_is_explicit) ... ok
-test_covariance_labels_reordered (test_portfolio.Stage3Optimization.test_covariance_labels_reordered) ... ok
-test_indefinite_covariance_rejected (test_portfolio.Stage3Optimization.test_indefinite_covariance_rejected) ... ok
-test_max_sharpe_analytic_solution (test_portfolio.Stage3Optimization.test_max_sharpe_analytic_solution) ... ok
-test_min_variance_analytic_solution (test_portfolio.Stage3Optimization.test_min_variance_analytic_solution) ... ok
-test_negative_excess_returns_best_vertex (test_portfolio.Stage3Optimization.test_negative_excess_returns_best_vertex) ... ok
-test_training_rf_does_not_use_future (test_portfolio.Stage3Optimization.test_training_rf_does_not_use_future) ... ok
-test_equal_means_redundant_target (test_portfolio.Stage4Frontier.test_equal_means_redundant_target) ... ok
-test_feasible_efficient_branch (test_portfolio.Stage4Frontier.test_feasible_efficient_branch) ... ok
-test_infeasible_target_rejected (test_portfolio.Stage4Frontier.test_infeasible_target_rejected) ... ok
-test_optimized_objectives_beat_feasible_equal_weight_in_sample (test_portfolio.Stage5Comparison.test_optimized_objectives_beat_feasible_equal_weight_in_sample) ... ok
-test_manual_formula_same_rf_dates_and_unweighted_mean (test_sharpe_comparison.AssetSharpeComparisonTests.test_manual_formula_same_rf_dates_and_unweighted_mean) ... ok
-test_missing_rf_rejected (test_sharpe_comparison.AssetSharpeComparisonTests.test_missing_rf_rejected) ... ok
-test_nan_asset_not_silently_removed (test_sharpe_comparison.AssetSharpeComparisonTests.test_nan_asset_not_silently_removed) ... ok
-test_reordered_weights_and_future_rf (test_sharpe_comparison.AssetSharpeComparisonTests.test_reordered_weights_and_future_rf) ... ok
-test_undefined_sharpe_does_not_bias_mean (test_sharpe_comparison.AssetSharpeComparisonTests.test_undefined_sharpe_does_not_bias_mean) ... ok
-test_all_stages_and_three_strategies (test_six_steps.Stage6Integration.test_all_stages_and_three_strategies) ... ok
-test_missing_rf_sentinel_rejected (test_us_source.SourceParsingTests.test_missing_rf_sentinel_rejected) ... ok
-test_month_end_percent_and_ignore_annual (test_us_source.SourceParsingTests.test_month_end_percent_and_ignore_annual) ... ok
-test_annual_percent_conversion_and_returns (test_vn_data.VNDataTests.test_annual_percent_conversion_and_returns) ... ok
-test_conflicting_rf_rejected (test_vn_data.VNDataTests.test_conflicting_rf_rejected) ... ok
-test_duplicate_rejected (test_vn_data.VNDataTests.test_duplicate_rejected) ... ok
-test_first_price_month_not_counted_as_return (test_vn_data.VNDataTests.test_first_price_month_not_counted_as_return) ... ok
-test_partial_month_rejected (test_vn_data.VNDataTests.test_partial_month_rejected) ... ok
-test_prices_no_forward_fill (test_vn_data.VNDataTests.test_prices_no_forward_fill) ... ok
+........................................................................ [ 94%]
+....                                                                     [100%]
+============================== warnings summary ===============================
+tests\test_backtest.py:3
+  C:\Users\ADMIN\Documents\Codex\2026-09-18\giu\work\portfolio_publish\tests\test_backtest.py:3: DeprecationWarning: 
+  Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+  (to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+  but was not found to be installed on your system.
+  If this would cause problems for you,
+  please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+          
+    import pandas as pd
 
-----------------------------------------------------------------------
-Ran 66 tests in 6.437s
-
-OK
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+76 passed, 1 warning in 6.20s
