@@ -16,6 +16,6 @@ if __name__ == '__main__':
     suite=unittest.defaultTestLoader.discover(str(root/'tests'))
     result=unittest.TextTestRunner(stream=stream,verbosity=2).run(suite)
     output=versions+'\n'+stream.getvalue()
-    (root/'TEST_RESULTS_V3.txt').write_text(output,encoding='utf-8')
+    (root/'TEST_RESULTS.txt').write_text(output,encoding='utf-8')
     print(output)
     sys.exit(0 if result.wasSuccessful() else 1)

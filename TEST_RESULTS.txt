@@ -1,4 +1,4 @@
-Python 3.12.3
+Python 3.12.14
 NumPy 1.26.0
 pandas 2.2.0
 SciPy 1.13.0
@@ -26,6 +26,12 @@ test_training_window_and_lag (test_backtest.BacktestTests.test_training_window_a
 test_wrong_weight_labels_rejected (test_backtest.BacktestTests.test_wrong_weight_labels_rejected) ... ok
 test_zero_cost (test_backtest.BacktestTests.test_zero_cost) ... ok
 test_zero_volatility_undefined (test_backtest.BacktestTests.test_zero_volatility_undefined) ... ok
+test_entry_waits_for_complete_training (test_dynamic.DynamicTests.test_entry_waits_for_complete_training) ... ok
+test_exit_liquidation_is_charged (test_dynamic.DynamicTests.test_exit_liquidation_is_charged) ... ok
+test_future_returns_do_not_change_earlier_weights (test_dynamic.DynamicTests.test_future_returns_do_not_change_earlier_weights) ... ok
+test_missing_held_return_rejected (test_dynamic.DynamicTests.test_missing_held_return_rejected) ... ok
+test_missing_unheld_return_allowed (test_dynamic.DynamicTests.test_missing_unheld_return_allowed) ... ok
+test_self_financing (test_dynamic.DynamicTests.test_self_financing) ... ok
 test_builtin_optimizers_real_runner_connection (test_pipeline.PipelineTests.test_builtin_optimizers_real_runner_connection) ... ok
 test_duplicate_input_rejected (test_pipeline.PipelineTests.test_duplicate_input_rejected) ... ok
 test_dynamic_universe_rejected (test_pipeline.PipelineTests.test_dynamic_universe_rejected) ... ok
@@ -49,9 +55,22 @@ test_equal_means_redundant_target (test_portfolio.Stage4Frontier.test_equal_mean
 test_feasible_efficient_branch (test_portfolio.Stage4Frontier.test_feasible_efficient_branch) ... ok
 test_infeasible_target_rejected (test_portfolio.Stage4Frontier.test_infeasible_target_rejected) ... ok
 test_optimized_objectives_beat_feasible_equal_weight_in_sample (test_portfolio.Stage5Comparison.test_optimized_objectives_beat_feasible_equal_weight_in_sample) ... ok
+test_manual_formula_same_rf_dates_and_unweighted_mean (test_sharpe_comparison.AssetSharpeComparisonTests.test_manual_formula_same_rf_dates_and_unweighted_mean) ... ok
+test_missing_rf_rejected (test_sharpe_comparison.AssetSharpeComparisonTests.test_missing_rf_rejected) ... ok
+test_nan_asset_not_silently_removed (test_sharpe_comparison.AssetSharpeComparisonTests.test_nan_asset_not_silently_removed) ... ok
+test_reordered_weights_and_future_rf (test_sharpe_comparison.AssetSharpeComparisonTests.test_reordered_weights_and_future_rf) ... ok
+test_undefined_sharpe_does_not_bias_mean (test_sharpe_comparison.AssetSharpeComparisonTests.test_undefined_sharpe_does_not_bias_mean) ... ok
 test_all_stages_and_three_strategies (test_six_steps.Stage6Integration.test_all_stages_and_three_strategies) ... ok
+test_missing_rf_sentinel_rejected (test_us_source.SourceParsingTests.test_missing_rf_sentinel_rejected) ... ok
+test_month_end_percent_and_ignore_annual (test_us_source.SourceParsingTests.test_month_end_percent_and_ignore_annual) ... ok
+test_annual_percent_conversion_and_returns (test_vn_data.VNDataTests.test_annual_percent_conversion_and_returns) ... ok
+test_conflicting_rf_rejected (test_vn_data.VNDataTests.test_conflicting_rf_rejected) ... ok
+test_duplicate_rejected (test_vn_data.VNDataTests.test_duplicate_rejected) ... ok
+test_first_price_month_not_counted_as_return (test_vn_data.VNDataTests.test_first_price_month_not_counted_as_return) ... ok
+test_partial_month_rejected (test_vn_data.VNDataTests.test_partial_month_rejected) ... ok
+test_prices_no_forward_fill (test_vn_data.VNDataTests.test_prices_no_forward_fill) ... ok
 
 ----------------------------------------------------------------------
-Ran 47 tests in 3.098s
+Ran 66 tests in 6.437s
 
 OK
