@@ -1,6 +1,8 @@
-.venv/
 __pycache__/
-*.py[cod]
+*.pyc
+demo_outputs/
+.venv/
 .pytest_cache/
-results/local_*/
-*.zip
+local_runs/
+sample_run/
+*.log
