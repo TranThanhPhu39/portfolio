@@ -12,7 +12,7 @@ The table reports the intercept and its standard error in percent per month at t
 
 The OLS alpha and t-statistic at lag 12 are cross-checked against the Step 3 comparison before output is written. Maximum Step 3 alpha gap is 3.182e-13 in decimal returns; maximum OLS t-statistic gap is 4.137e-10.
 
-The HAC covariance is separately recomputed from the Bartlett weighted score products. Its maximum difference from statsmodels is 2.602e-17. VIFs are also checked against the auxiliary-regression definition; the maximum difference is 4.441e-16.
+The HAC covariance is separately recomputed from the Bartlett weighted score products. Its maximum difference from statsmodels is 1.258e-17. VIFs are also checked against the auxiliary-regression definition; the maximum difference is 8.882e-16.
 
 | Model | Factor source | T | Alpha OLS (%/month) | OLS t | HAC SE (%/month), lag 12 | z HAC | HAC p-value |
 |---|---|---|---|---|---|---|---|

@@ -14,7 +14,7 @@ Here `Sigma_e = E'E/(T-K-1)` is the unbiased residual covariance and `Omega_f` u
 
 The finite-sample GRS reference assumes the standard joint normality and time-independence conditions for regression disturbances. It is the classical test; HAC/Newey-West adjustments are not part of this statistic and remain in Step 6.
 
-An independent matrix-OLS path recomputes the equivalent statistic using the MLE residual covariance `E'E/T`. Every run must agree with the covariance-unbiased implementation before output is written. Across the saved runs, the maximum statistic gap is 1.243e-14 and the maximum alpha gap is 1.542e-17.
+An independent matrix-OLS path recomputes the equivalent statistic using the MLE residual covariance `E'E/T`. Every run must agree with the covariance-unbiased implementation before output is written. Across the saved runs, the maximum statistic gap is 5.773e-15 and the maximum alpha gap is 1.605e-17.
 
 ## Results
 
@@ -22,12 +22,12 @@ Table 5 Panel A's 2x3-factor GRS references are **3.62** for FF3 (`HML`) and **2
 
 | Model | Variant | T | N | K | F numerator df | F denominator df | GRS | p-value | Independent GRS gap | Table 5 GRS | Gap |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| CAPM | current CSV | 606 | 25 | 1 | 25 | 580 | 4.4246 | 1.79621e-11 | 1.24345e-14 | — | — |
-| FF3 | current CSV | 606 | 25 | 3 | 25 | 578 | 3.5676 | 2.15799e-08 | 2.66454e-15 | 3.6200 | -0.0524 |
-| FF5 | current CSV | 606 | 25 | 5 | 25 | 576 | 3.1204 | 7.80914e-07 | 6.66134e-15 | 2.8400 | 0.2804 |
-| FF3 | July 2014 archive sensitivity | 606 | 25 | 3 | 25 | 578 | 3.5030 | 3.64406e-08 | 1.33227e-15 | 3.6200 | -0.1170 |
-| FF3 | July 2015 archive sensitivity | 606 | 25 | 3 | 25 | 578 | 3.5036 | 3.62847e-08 | 7.10543e-15 | 3.6200 | -0.1164 |
-| FF5 | July 2015 archive sensitivity | 606 | 25 | 5 | 25 | 576 | 2.9073 | 4.12386e-06 | 3.55271e-15 | 2.8400 | 0.0673 |
+| CAPM | current CSV | 606 | 25 | 1 | 25 | 580 | 4.4246 | 1.79621e-11 | 2.66454e-15 | — | — |
+| FF3 | current CSV | 606 | 25 | 3 | 25 | 578 | 3.5676 | 2.15799e-08 | 4.44089e-15 | 3.6200 | -0.0524 |
+| FF5 | current CSV | 606 | 25 | 5 | 25 | 576 | 3.1204 | 7.80914e-07 | 3.9968e-15 | 2.8400 | 0.2804 |
+| FF3 | July 2014 archive sensitivity | 606 | 25 | 3 | 25 | 578 | 3.5030 | 3.64406e-08 | 1.77636e-15 | 3.6200 | -0.1170 |
+| FF3 | July 2015 archive sensitivity | 606 | 25 | 3 | 25 | 578 | 3.5036 | 3.62847e-08 | 3.55271e-15 | 3.6200 | -0.1164 |
+| FF5 | July 2015 archive sensitivity | 606 | 25 | 5 | 25 | 576 | 2.9073 | 4.12386e-06 | 5.77316e-15 | 2.8400 | 0.0673 |
 
 Current-source FF3 differs from its Table 5 reference by -0.0524; current-source FF5 differs by +0.2804. The July 2015 FF5 factor sensitivity yields GRS 2.9073, a gap of +0.0673 from Table 5; its LHS is still the current local file. CAPM is included as a joint test but has no matching Table 5 GRS reference. Archive rows are factor-vintage sensitivities using the current local portfolio file, not full 2015-vintage replications.
 
