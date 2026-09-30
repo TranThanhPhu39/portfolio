@@ -1,0 +1,41 @@
+{
+  "sample_status": "KTL_BASELINE_JUNE_2021_FORMATION_TOP30",
+  "source_return_rows": 9600,
+  "source_return_tickers": 145,
+  "source_factor_months": 96,
+  "common_months": 60,
+  "sample_start": "2021-07-31",
+  "sample_end": "2026-06-30",
+  "assets": 30,
+  "selection_rule": "Top 30 VN100 members by June 2021 formation market cap; sample starts July 2021",
+  "universe_status": "team-baseline",
+  "selected_return_rows": 1800,
+  "return_sources": {
+    "close_eom": 1800
+  },
+  "selected_abs_return_over_100pct": 0,
+  "selected_reported_price_gap_over_1pp": 7,
+  "vif_over_10_count": 0,
+  "factor_team_market_proxy": "VNINDEX",
+  "econometrics_market_proxy": "VN100",
+  "market_factor_construction": "Monthly VN100 return from the matched return panel minus Factor Team RF.",
+  "factor_team_rf_proxy": "1Y government yield converted to effective monthly return",
+  "factor_team_schedule": "June formation, July-to-June holding",
+  "factor_team_weighting": "lagged market capitalization",
+  "factor_team_fiscal_rule": "latest statement announced by formation date",
+  "source_commit_factor_branch": "926f53deaaf0c9cc2e75a540fb789eb1f811d82a",
+  "source_commit_econometrics_main": "08b7096e4f6971dd58c4c9ca63b2b65a0cf476bf",
+  "returns_sha256": "22caecf8bb62ed19ae47db2f0f5dc29a5e014a490d90893cbe9317edfd46f570",
+  "factors_sha256": "375dc61b29d6826f0d1230a123fef36816405a6603827f3e29ba9b4c7919fec7",
+  "factor_source_verification": {
+    "verified": true,
+    "reason": "matched tracked Git blobs",
+    "git_blob_oids": {
+      "returns": "fe287f94ad9b8ef60c76afe869af25eea1a5779d",
+      "factors": "a333530b7e71670b93639ce45e0a77d4d0e76ade"
+    }
+  },
+  "universe_sha256": "ae5bc8892995bdacd8a6b3aec107c8bcfac9c49c6acb55702e8a0f7837a06239",
+  "python": "3.12.14",
+  "pandas": "2.2.0"
+}
