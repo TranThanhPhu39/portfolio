@@ -1,0 +1,57 @@
+Python 3.12.3
+NumPy 1.26.0
+pandas 2.2.0
+SciPy 1.13.0
+
+test_benchmark_missing_date_rejected (test_backtest.BacktestTests.test_benchmark_missing_date_rejected) ... ok
+test_buy_hold_drift_and_turnover (test_backtest.BacktestTests.test_buy_hold_drift_and_turnover) ... ok
+test_crossing_returns_bracket_not_exact (test_backtest.BacktestTests.test_crossing_returns_bracket_not_exact) ... ok
+test_daily_returns_compounded (test_backtest.BacktestTests.test_daily_returns_compounded) ... ok
+test_drawdown_includes_initial_value (test_backtest.BacktestTests.test_drawdown_includes_initial_value) ... ok
+test_equal_dates_all_fee_scenarios (test_backtest.BacktestTests.test_equal_dates_all_fee_scenarios) ... ok
+test_future_changes_do_not_change_past_weights (test_backtest.BacktestTests.test_future_changes_do_not_change_past_weights) ... ok
+test_initial_fee_self_financing (test_backtest.BacktestTests.test_initial_fee_self_financing) ... ok
+test_missing_month_rejected (test_backtest.BacktestTests.test_missing_month_rejected) ... ok
+test_missing_return_rejected (test_backtest.BacktestTests.test_missing_return_rejected) ... ok
+test_nan_rate_rejected (test_backtest.BacktestTests.test_nan_rate_rejected) ... ok
+test_negative_weight_rejected (test_backtest.BacktestTests.test_negative_weight_rejected) ... ok
+test_no_advantage_is_not_threshold (test_backtest.BacktestTests.test_no_advantage_is_not_threshold) ... ok
+test_no_rebalance_does_not_restore_target (test_backtest.BacktestTests.test_no_rebalance_does_not_restore_target) ... ok
+test_no_trade_no_fee (test_backtest.BacktestTests.test_no_trade_no_fee) ... ok
+test_optimizer_failure_propagates (test_backtest.BacktestTests.test_optimizer_failure_propagates) ... ok
+test_sharpe_excess_sample_sd (test_backtest.BacktestTests.test_sharpe_excess_sample_sd) ... ok
+test_switch_buy_and_sell_fee (test_backtest.BacktestTests.test_switch_buy_and_sell_fee) ... ok
+test_ticker_order_aligned (test_backtest.BacktestTests.test_ticker_order_aligned) ... ok
+test_training_window_and_lag (test_backtest.BacktestTests.test_training_window_and_lag) ... ok
+test_wrong_weight_labels_rejected (test_backtest.BacktestTests.test_wrong_weight_labels_rejected) ... ok
+test_zero_cost (test_backtest.BacktestTests.test_zero_cost) ... ok
+test_zero_volatility_undefined (test_backtest.BacktestTests.test_zero_volatility_undefined) ... ok
+test_builtin_optimizers_real_runner_connection (test_pipeline.PipelineTests.test_builtin_optimizers_real_runner_connection) ... ok
+test_duplicate_input_rejected (test_pipeline.PipelineTests.test_duplicate_input_rejected) ... ok
+test_dynamic_universe_rejected (test_pipeline.PipelineTests.test_dynamic_universe_rejected) ... ok
+test_missing_rf_fails_before_export (test_pipeline.PipelineTests.test_missing_rf_fails_before_export) ... ok
+test_non_month_end_rejected (test_pipeline.PipelineTests.test_non_month_end_rejected) ... ok
+test_required_fee_scenarios (test_pipeline.PipelineTests.test_required_fee_scenarios) ... ok
+test_two_strategies_full_export_and_no_overwrite (test_pipeline.PipelineTests.test_two_strategies_full_export_and_no_overwrite) ... ok
+test_hand_calculated_returns (test_portfolio.Stage1Prices.test_hand_calculated_returns) ... ok
+test_missing_month_rejected (test_portfolio.Stage1Prices.test_missing_month_rejected) ... ok
+test_missing_not_filled (test_portfolio.Stage1Prices.test_missing_not_filled) ... ok
+test_zero_price_rejected (test_portfolio.Stage1Prices.test_zero_price_rejected) ... ok
+test_known_mean_and_sample_covariance (test_portfolio.Stage2Estimation.test_known_mean_and_sample_covariance) ... ok
+test_ridge_is_explicit (test_portfolio.Stage2Estimation.test_ridge_is_explicit) ... ok
+test_covariance_labels_reordered (test_portfolio.Stage3Optimization.test_covariance_labels_reordered) ... ok
+test_indefinite_covariance_rejected (test_portfolio.Stage3Optimization.test_indefinite_covariance_rejected) ... ok
+test_max_sharpe_analytic_solution (test_portfolio.Stage3Optimization.test_max_sharpe_analytic_solution) ... ok
+test_min_variance_analytic_solution (test_portfolio.Stage3Optimization.test_min_variance_analytic_solution) ... ok
+test_negative_excess_returns_best_vertex (test_portfolio.Stage3Optimization.test_negative_excess_returns_best_vertex) ... ok
+test_training_rf_does_not_use_future (test_portfolio.Stage3Optimization.test_training_rf_does_not_use_future) ... ok
+test_equal_means_redundant_target (test_portfolio.Stage4Frontier.test_equal_means_redundant_target) ... ok
+test_feasible_efficient_branch (test_portfolio.Stage4Frontier.test_feasible_efficient_branch) ... ok
+test_infeasible_target_rejected (test_portfolio.Stage4Frontier.test_infeasible_target_rejected) ... ok
+test_optimized_objectives_beat_feasible_equal_weight_in_sample (test_portfolio.Stage5Comparison.test_optimized_objectives_beat_feasible_equal_weight_in_sample) ... ok
+test_all_stages_and_three_strategies (test_six_steps.Stage6Integration.test_all_stages_and_three_strategies) ... ok
+
+----------------------------------------------------------------------
+Ran 47 tests in 3.207s
+
+OK
