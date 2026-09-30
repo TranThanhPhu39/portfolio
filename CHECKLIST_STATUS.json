@@ -1,0 +1,30 @@
+{
+  "code_tests": 66,
+  "tests_pass": true,
+  "steps_1_6": "Executed on 30 real US stocks; source snapshots included",
+  "step_7": "Executed on group Vietnam period inputs, exploratory",
+  "vn_provided": {
+    "execution": "PASS",
+    "research_acceptance": "NOT_CONFIRMED",
+    "months": 78,
+    "eligible_count_min": 71,
+    "eligible_count_max": 90,
+    "source_folder_only": true
+  },
+  "vn_prices": {
+    "execution": "PASS",
+    "research_acceptance": "NOT_CONFIRMED",
+    "months": 77,
+    "eligible_count_min": 71,
+    "eligible_count_max": 90,
+    "source_folder_only": true
+  },
+  "transaction_cost_rates": [
+    0,
+    0.0015,
+    0.0025,
+    0.0035
+  ],
+  "research_acceptance": "NOT_CONFIRMED",
+  "github_push": "Not performed; package for user upload"
+}

@@ -1,4 +1,4 @@
-﻿selection_rank,ticker,formation_date,formation_market_cap,book_to_market,information_date,eligible_bm,eligible_op,eligible_inv,selection_rule
+selection_rank,ticker,formation_date,formation_market_cap,book_to_market,information_date,eligible_bm,eligible_op,eligible_inv,selection_rule
 1,VCB.HM,2021-06-30,423384856636704,0.2385717803,2021-05-04,True,True,True,Top 30 VN100 members by June 2021 formation market cap; sample starts July 2021
 2,VIC.HM,2021-06-30,405806279469779,0.3444364025,2021-05-04,True,True,True,Top 30 VN100 members by June 2021 formation market cap; sample starts July 2021
 3,HPG.HM,2021-06-30,202337516490627,0.3272826587,2021-04-26,True,True,True,Top 30 VN100 members by June 2021 formation market cap; sample starts July 2021
