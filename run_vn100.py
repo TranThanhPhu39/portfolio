@@ -60,7 +60,7 @@ def run(args):
         (out/'RUN_STATUS.json').write_text(json.dumps({'execution':'FAILED','error':str(exc)},indent=2));raise
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--input',default=str(Path(__file__).parent/'data/vn100_periods'))
+    p=argparse.ArgumentParser();p.add_argument('--input',default=str(Path(__file__).parent/'back_test_hoan_chinh/data/vn100_periods'))
     p.add_argument('--output',required=True);p.add_argument('--return-basis',choices=['provided','prices'],required=True)
     p.add_argument('--rf-basis',choices=['annual_effective_percent','monthly_percent'],required=True)
     p.add_argument('--end',default='2026-08');p.add_argument('--ridge',type=float,default=1e-8)
