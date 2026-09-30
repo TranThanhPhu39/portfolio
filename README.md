@@ -1,3 +1,13 @@
+# Điểm vào các phần của nhóm
+
+**Sửa nhận xét 30/09:** các runner backtest ở gốc repo đã có module, test và config đầy đủ. Xem [bảng trả lời từng lỗi](docs/backtest_review_resolution.md). Tại gốc repo chạy `python -m pip install -r requirements_backtest_dev.txt`, rồi `python verify_all.py`. `CHAY_LAI.cmd` chạy demo kiểm tra logic; đây không phải lệnh chạy dữ liệu VN thật.
+
+- **Backtest hiện hành của Thành:** [back_test_hoan_chinh/README.md](back_test_hoan_chinh/README.md). Chạy script trong thư mục này để dùng đúng mã nguồn và dữ liệu đi kèm.
+- **Kinh tế lượng:** [docs/econometrics_audit_guide.md](docs/econometrics_audit_guide.md).
+- **Nhân tố VN:** [docs/vn_period_factor_pipeline.md](docs/vn_period_factor_pipeline.md).
+
+Các thư mục `config/` và `outputs/` ở gốc được giữ để phục vụ phần nhân tố và kinh tế lượng. Phần hướng dẫn v3 dưới đây là tài liệu cũ, không phải lệnh chạy gói backtest theo kỳ hiện hành.
+
 # Bản v3: hướng dẫn chính là TEST_6_MUC.md
 
 Đã bổ sung src/portfolio/prices.py và markowitz.py cho các mục 1–5, run_six_steps.py chạy cả 6 mục trên giá tháng giả lập, prepare_prices.py chuẩn bị giá tháng thật. Hai optimizer builtin dùng mean/covariance lịch sử, long-only; không phải mô hình kỳ vọng CAPM/FF.
