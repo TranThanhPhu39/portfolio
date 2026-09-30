@@ -1,4 +1,0 @@
-model,portfolio,factor_file,alpha_pct_per_month,t_alpha,r_squared,observations
-CAPM,SMALL LoBM,ff3_factors_monthly.csv,-0.4478538647,-2.297717201,0.6449247305,606
-FF3,SMALL LoBM,ff3_factors_monthly.csv,-0.4941387821,-5.149019303,0.9170518535,606
-FF5,SMALL LoBM,ff5_factors_monthly.csv,-0.2746994028,-3.056885253,0.9318525516,606
