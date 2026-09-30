@@ -18,6 +18,15 @@ The folder follows the project brief's `data/` location. It separates reproducib
 - [`us_test_characteristics.csv`](test/us_factor_logic/us_test_characteristics.csv): synthetic size and book-to-market proxies for exercising sorting logic.
 - The synthetic characteristics are test fixtures only. They are not empirical inputs and must not be used as Vietnam factor data.
 
+### `test/factor_demo/`
+
+- A separate 30-stock US demonstration snapshot contributed by Factor Team. `scripts/run_us_factor_demo.py` reads these files and writes `outputs/factor_demo/`.
+- The demonstration uses synthetic profitability and investment characteristics. Do not use it for Vietnam regressions.
+
+## Processed Vietnam inputs
+
+The Factor Team's matched decimal return panel and monthly factors are versioned at `outputs/vn_period_factors/vn100_returns_clean.csv` and `outputs/vn_period_factors/vn100_factors_monthly.csv`. The econometrics runner reads that pair, records their SHA-256 hashes, and exports a 60-month comparison sample. Raw source archives are not tracked in this repository; the builder can read the supplied combined ZIP through its unique ZIP-entry basename lookup by passing the same path as both positional inputs.
+
 ## Historical references
 
 [`reference/kenneth_french/vintage_2014/`](reference/kenneth_french/vintage_2014/) and [`vintage_2015/`](reference/kenneth_french/vintage_2015/) contain official historical factor archives used for sensitivity comparisons. They support a historical factor-vintage check; they do not establish that the local 25-portfolio LHS file is the exact 2015 vintage.

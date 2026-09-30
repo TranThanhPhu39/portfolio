@@ -1,6 +1,6 @@
 # Portfolio - econometrics workflow
 
-This repository supports the VN100 asset-pricing and portfolio project described in the project brief. The econometrics team's completed Steps 1-6 use Kenneth French data to validate the CAPM, FF3, FF5, GRS, HAC, and VIF workflow. Step 7 is pending delivery of Vietnam returns and Vietnam factors.
+This repository supports the VN100 asset-pricing and portfolio project described in the project brief. The econometrics team's Steps 1-6 use Kenneth French data to validate the CAPM, FF3, FF5, GRS, HAC, and VIF workflow. Factor Team outputs for Vietnam are in `outputs/vn_period_factors/`; the Econometrics Team has selected a fixed 30-stock baseline from the June 2021 formation and run Step 7 on the common 60-month sample.
 
 ## Audit entry point
 
@@ -17,7 +17,7 @@ config/                Project configuration and universe
 src/                   Reusable data, factor, model, portfolio, and backtest code
 scripts/               Reproducible workflow entry points
 notebooks/             Econometrics Step 3 audit notebook
-outputs/               Tables and audit reports for Steps 1-6
+outputs/               Tables and audit reports for Steps 1-6 and VN factor/model runs
 tests/                 Existing project tests
 requirements.txt       Pinned runtime dependencies
 requirements.lock.txt  Resolved Python 3.12.14 environment
@@ -54,8 +54,32 @@ To fetch a fresh Kenneth French sample and the separate US factor-sorting logic 
 
 The fetcher writes to `data/test/kenneth_french/` and `data/test/us_factor_logic/`. It does not replace the historical reference archives under `data/reference/`.
 
+The separate Factor Team demonstration snapshot lives in `data/test/factor_demo/` and is read by `scripts/run_us_factor_demo.py`.
+
+## Run the Vietnam econometrics workflow
+
+The paired Factor Team inputs are `outputs/vn_period_factors/vn100_returns_clean.csv` and `outputs/vn_period_factors/vn100_factors_monthly.csv`. Returns, RF, and factors are stored as decimals. The current factor file has 96 months of CAPM/FF3 inputs and 60 months complete for FF5 (2021-07 through 2026-06). The baseline comparison uses those same 60 months for all three models.
+
+The Factor pipeline can also rebuild these files directly from the user's combined ZIP by passing that archive as both source arguments. Its 11 rebuilt CSVs were reconciled to the committed Factor Team outputs; details and the source hash are in `docs/vn_econometrics_implementation_audit.md`.
+
+From the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py
+```
+
+The default universe in `config/vn_econometrics_universe.csv` is the 30 largest VN100 members at the June 2021 formation, before the July 2021–June 2026 return sample. All selected stocks have all 60 months. The runner uses VN100 MKT by default and calculates a same-sample VNINDEX sensitivity. It writes to `outputs/vn_econometrics_baseline/`: 90 asset regressions, HAC lag 12/6, VIF, three GRS tests, an HML spanning regression, Table 5/7-style CSVs, market proxy sensitivity, selected tickers, sample months, a run manifest, and a report. The output records the Factor Team commit and input SHA-256 values.
+
+To run a different explicit set of 30 tickers, supply a CSV with one `ticker` column and exactly 30 distinct values:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py --universe path\to\alternate_universe.csv --output-dir outputs\vn_econometrics_review
+```
+
+The runner rejects missing ticker-month returns. The KTL baseline uses VN100 for MKT and exports a VNINDEX comparison in the same report. It uses the Factor Team's 1Y government yield converted to monthly RF, June formation, July-to-June holding, and lagged total market-cap weights. The method record explains these choices and their relationship to the project brief.
+
 ## Results and known boundary
 
 The final consolidated review is [`outputs/full_audit_steps1_6.md`](outputs/full_audit_steps1_6.md). Step-specific results are in `outputs/step3_*` through `outputs/step6_*`; the earlier Steps 1-5 review is retained under [`outputs/history/`](outputs/history/).
 
-Comparisons with Fama-French (2015) are approximate because the current 25-portfolio LHS file has no vintage metadata and has not been verified as the exact 2015 file. Step 7 must wait for the Vietnam dataset; the test data in this repository is not Vietnam research data.
+Comparisons with Fama-French (2015) are approximate because the current 25-portfolio LHS file has no vintage metadata and has not been verified as the exact 2015 file. The US test data is not Vietnam research data. Vietnam baseline results are in `outputs/vn_econometrics_baseline/`; the LHS selection is fixed using formation-date information rather than later sample coverage.

@@ -2,7 +2,7 @@
 
 ## Overall verdict
 
-**Steps 1-6 pass their stated, checkable completion criteria on the current test dataset.** Inputs, outputs, and cross-step consistency have been rechecked. Step 7 was not run and is out of scope until the Vietnamese dataset is available.
+**Steps 1-6 pass their stated, checkable completion criteria on the current test dataset.** Inputs, outputs, and cross-step consistency have been rechecked. At the time this audit was written, Step 7 had not run. The Econometrics Team later selected a June 2021 formation-date VN baseline and ran Step 7; evidence is in [`vn_econometrics_baseline/run_report.md`](vn_econometrics_baseline/run_report.md).
 
 The work uses the current local 25-portfolio LHS vintage. A matching 2015 vintage of the LHS portfolio file has not been established, so the Fama-French comparisons are approximate comparisons, not an exact historical replication. The vintage limitation is recorded in the Step 4 and Step 5 audit reports.
 
