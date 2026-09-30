@@ -1,0 +1,25 @@
+{
+  "synthetic": true,
+  "universe_mode": "fixed",
+  "data_source": "Synthetic seeded test data",
+  "benchmark_name": "SYNTHETIC_NOT_VN30",
+  "return_basis": "Simulated monthly simple returns",
+  "universe_selection": "Four simulated assets, fixed universe; not historical VN100",
+  "execution_assumption": "One full month lag; trade before monthly returns; fractional holdings",
+  "returns": "../sample_inputs/returns.csv",
+  "benchmark": "../sample_inputs/benchmark.csv",
+  "risk_free": "../sample_inputs/risk_free.csv",
+  "output_dir": "../sample_run",
+  "lookback": 24,
+  "rebalance_every": 1,
+  "decision_lag_periods": 1,
+  "rates": [
+    0,
+    0.0015,
+    0.0025,
+    0.0035
+  ],
+  "strategies": {
+    "DEMO_equal_weight": "demo_synthetic:equal_weight_demo"
+  }
+}
