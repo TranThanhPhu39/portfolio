@@ -1,4 +1,4 @@
-# Hướng dẫn Thành kiểm tra và bàn giao phần backtest
+# Hướng dẫn kiểm tra phần backtest
 
 ## 1. Mở đúng thư mục
 

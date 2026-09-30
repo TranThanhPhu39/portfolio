@@ -1,0 +1,20 @@
+Python 3.12.14
+NumPy 1.26.0
+pandas 2.2.0
+SciPy 1.13.0
+
+........................................................................ [ 94%]
+....                                                                     [100%]
+============================== warnings summary ===============================
+tests\test_backtest.py:3
+  C:\Users\ADMIN\Documents\Codex\2026-09-18\giu\work\portfolio_publish\tests\test_backtest.py:3: DeprecationWarning: 
+  Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+  (to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+  but was not found to be installed on your system.
+  If this would cause problems for you,
+  please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+          
+    import pandas as pd
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+76 passed, 1 warning in 6.20s
