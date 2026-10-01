@@ -1,119 +1,271 @@
-# Điểm vào các phần của nhóm
+# Asset Pricing VN — hướng dẫn chạy backtest từ đầu đến cuối
 
-**Sửa nhận xét 30/09:** các runner backtest ở gốc repo đã có module, test và config đầy đủ. Xem [bảng trả lời từng lỗi](docs/backtest_review_resolution.md). Tại gốc repo chạy `python -m pip install -r requirements_backtest.txt`, rồi `python verify_all.py`. Demo cố định chạy bằng `python run_backtest.py --config config/example.json`; dữ liệu VN100 theo kỳ chạy bằng `run_vn100.py` với các giả định được khai báo rõ.
+## 1. Trạng thái dữ liệu thật
 
-- **Backtest hiện hành của Thành:** [back_test_hoan_chinh/README.md](back_test_hoan_chinh/README.md). Chạy script trong thư mục này để dùng đúng mã nguồn và dữ liệu đi kèm.
-- **Kinh tế lượng:** [docs/econometrics_audit_guide.md](docs/econometrics_audit_guide.md).
-- **Nhân tố VN:** [docs/vn_period_factor_pipeline.md](docs/vn_period_factor_pipeline.md).
+Workspace hiện tại **chưa có một lần chạy backtest dữ liệu thật có đủ đầu vào, metadata và kết quả để kiểm chứng/tái lập**.
 
-Các thư mục `config/` và `outputs/` ở gốc được giữ để phục vụ phần nhân tố và kinh tế lượng. Phần hướng dẫn v3 dưới đây là tài liệu cũ, không phải lệnh chạy gói backtest theo kỳ hiện hành.
+- `sample_inputs/` và `sample_run/` là dữ liệu/kết quả giả lập.
+- `outputs/vn_period_factors/` là đầu ra xây dựng nhân tố, không phải portfolio backtest.
+- Không có bộ nguồn `Top100_Ky*.csv`, `local_runs/` hoặc `RUN_STATUS.json` của một lần chạy VN100 thật.
+- Không dùng kết quả demo để kết luận MinVariance, MaxSharpe hay EqualWeight tốt hơn VN30.
 
-# Bản v3: hướng dẫn chính là TEST_6_MUC.md
+Engine đã được kiểm thử cho cả universe cố định và universe thay đổi theo thời gian. Để tạo kết quả nghiên cứu thật, cần cung cấp đúng dữ liệu và xác nhận các giả định trong `docs/decisions.md`.
 
-Đã bổ sung src/portfolio/prices.py và markowitz.py cho các mục 1–5, run_six_steps.py chạy cả 6 mục trên giá tháng giả lập, prepare_prices.py chuẩn bị giá tháng thật. Hai optimizer builtin dùng mean/covariance lịch sử, long-only; không phải mô hình kỳ vọng CAPM/FF.
+## 2. Thành phần chính
 
-Đọc TEST_6_MUC.md trước. Các nội dung dưới mô tả engine ban đầu; hướng dẫn mới thay thế phần yêu cầu phải nhận optimizer từ nhóm nếu dùng baseline builtin. Nhóm vẫn phải duyệt phương pháp và dữ liệu trước mục 7.
-
-# Phần backtest của Thành - bộ code bàn giao v3
-
-Gói này để ghép vào repo `TranThanhPhu39/portfolio`. Được tạo cục bộ; chưa push hoặc sửa repo trên GitHub. Có thêm baseline tối ưu Markowitz và xử lý giá tháng để kiểm tra sáu mục; chưa thay code hoặc push lên repo nhóm.
-
-Hướng dẫn chạy từng bước: **HUONG_DAN_TEST.md**. Runner CSV: `run_backtest.py`; cấu hình mẫu cố định: `config/example.json`; template nghiên cứu cố định: `config/research.template.json`; template universe động: `config/dynamic.template.json`. Kết quả kiểm thử hiện tại được tạo bằng `verify_all.py`; `TEST_RESULTS_V3.txt` chỉ là log lịch sử.
-
-## Trạng thái
-
-- Đã viết tính phí, mô phỏng cuốn chiếu, chỉ tiêu hiệu quả, so sánh benchmark và chạy kịch bản phí.
-- Đã có kiểm thử tự động với kết quả tính tay và các trường hợp lỗi.
-- demo_synthetic.py vẫn là demo chia đều cũ. run_six_steps.py chạy Min Variance, Max Sharpe và chia đều trên dữ liệu giả lập; không phải kết quả VN30 và không dùng làm kết luận nghiên cứu.
-- Chưa nhận dữ liệu thật và quyết định phương pháp cuối cùng. Baseline tối ưu lịch sử đã có nhưng cần nhóm xác nhận phù hợp đề tài.
-- Bản đầu chỉ hỗ trợ bảng lợi suất tháng liên tục, tập cổ phiếu cố định, không thiếu dữ liệu. Chưa hỗ trợ universe thay đổi theo lịch sử: không được dùng việc chọn các mã sống sót đầy đủ để gọi là nghiên cứu VN100 không có survivorship bias.
-
-## Chạy trên máy
-
-Mở thư mục này trong VS Code, dùng Python 3.10 trở lên:
-
-```sh
-python -m pip install -r requirements_backtest.txt
-python -m unittest discover -s tests -v
-python demo_synthetic.py
-```
-
-Demo xuất `demo_outputs/report.html`, bảng CSV, lịch sử giao dịch, trọng số, cấu hình và ba biểu đồ SVG. Mở report.html bằng trình duyệt. Mọi kết quả demo phải giữ nhãn SYNTHETIC. Chạy lại ghi đè các kết quả demo cùng tên.
-
-## Các file thuộc phần Thành
-
-| File | Nhiệm vụ |
+| Thành phần | Công dụng |
 |---|---|
-| src/backtest/transaction_costs.py | Tính tiền mua/bán, phí và kiểm tra cân đối vốn |
-| src/backtest/walk_forward.py | Lịch tối ưu theo cửa sổ, mô phỏng danh mục và kịch bản phí |
-| src/backtest/performance.py | Sharpe, CAGR, drawdown và khoảng phí mất lợi thế |
-| src/backtest/benchmark.py | Căn chỉnh benchmark/RF; gộp lợi suất ngày thành tháng |
-| tests/test_backtest.py | Kiểm thử độc lập với dữ liệu thật |
-| demo_synthetic.py | Ví dụ kết nối, xuất bảng và biểu đồ bằng dữ liệu giả lập |
-| docs/input_contract.md | Quy định đầu vào gửi nhóm data/optimization |
-| docs/decisions.md | Giả định bản đầu và các nội dung nhóm phải chốt |
+| `run_backtest.py` | Runner CSV chung cho universe `fixed` và `dynamic` |
+| `run_vn100.py` | Runner chuyên biệt cho bộ file kỳ `Top100_Ky*.csv` |
+| `config/example.json` | Demo giả lập chạy được ngay |
+| `config/research.template.json` | Template dữ liệu thật, universe cố định |
+| `config/dynamic.template.json` | Template dữ liệu thật, universe động |
+| `docs/input_contract.md` | Hợp đồng dữ liệu đầu vào |
+| `docs/decisions.md` | Các giả định nhóm phải xác nhận |
+| `verify_all.py` | Chạy test và lưu `TEST_RESULTS.txt` |
 
-Không chép đè src/__init__.py hoặc các file khác nếu repo nhóm đã cập nhật. Khi tích hợp, so sánh thay đổi và chỉ đưa phần cần thiết vào nhánh làm việc của Thành.
+## 3. Bước 1 — mở đúng thư mục
 
-## Cách kết nối optimizer thật
-
-```python
-import pandas as pd
-from src.backtest.walk_forward import run_cost_scenarios
-from src.backtest.performance import comparison_table, fee_crossings
-
-# returns: DataFrame lợi suất tháng dạng số thập phân, cột là mã cổ phiếu.
-# risk_free và benchmark: Series cùng ngày, lợi suất tháng, KHÔNG phải mức giá.
-# optimizer(history) -> Series trọng số có index là mã cổ phiếu.
-# Thay bằng hàm đã thống nhất với người làm Markowitz.
-results = run_cost_scenarios(
-    returns, optimizer,
-    lookback=24,                  # ví dụ, CHƯA CHỐT với nhóm
-    rebalance_every=1,            # ví dụ, CHƯA CHỐT với nhóm
-    decision_lag_periods=1,       # một tháng trễ để triển khai, xem bên dưới
-    rates=(0.0, 0.0015, 0.0025, 0.0035),
-)
-summary = comparison_table(results, risk_free, benchmark)
-print(summary)
-print(fee_crossings(summary))
+```powershell
+cd "D:\UEL\7. HK 1 2026 - 2027\GPM2\b4\asset_pricing_vn"
+Get-ChildItem
 ```
 
-Chạy riêng với optimizer Min Variance và optimizer Max Sharpe khi nhận hai hàm thật. Nếu Max Sharpe cần RF kỳ vọng, hàm optimizer phải sử dụng RF đã biết tại ngày train_end; không truyền RF tương lai. Backtest dùng lợi suất thực tế chưa trừ RF để cập nhật tài sản; chỉ trừ RF khi tính Sharpe.
+Phải nhìn thấy `run_backtest.py`, `src`, `tests` và `config`.
 
-## Cơ chế thời gian và lợi suất
+## 4. Bước 2 — tạo môi trường Python
 
-- Mỗi dòng ngày cuối tháng t chứa lợi suất đơn từ cuối tháng t-1 đến cuối tháng t. Không dùng log-return trực tiếp.
-- `decision_lag_periods=1` mặc định: đầu tư trong tháng t dựa trên cửa sổ kết thúc tháng t-2. Tháng t-1 là khoảng trễ triển khai. Đây là giả định bảo thủ để không khớp lệnh tại đúng giá đóng cửa vừa dùng để tối ưu; không phải lịch T+ của thị trường.
-- Ví dụ demo 84 tháng, 24 tháng ước lượng, thêm 1 tháng trễ: còn 59 tháng ngoài mẫu.
-- `decision_lag_periods=0` chỉ phù hợp nếu nhóm chấp nhận giả định ra quyết định và khớp tại cùng giá cuối kỳ trước, hoặc đầu vào đã được xây theo giá thực thi tương thích. Không dùng mặc định để tuyên bố không có look-ahead.
-- Giao dịch ở đầu kỳ đầu tư; tính phí trước, sau đó áp dụng lợi suất kỳ đó. Giữa hai lần tái cân bằng, giữ khoản đầu tư để trọng số tự thay đổi theo giá.
-- Chỉ số `market_return` là lợi suất phần tài sản sau tái cân bằng trước tác động phí kỳ đó. Muốn đường không phí, dùng kết quả chạy độc lập với rate=0, không cộng phí cơ học vào net_return.
+Khuyến nghị Python 3.12:
 
-## Quy ước chi phí - bản đầu, cần nhóm xác nhận
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements_backtest.txt
+.\.venv\Scripts\python.exe -m pip install "pytest>=8,<9"
+```
 
-`transaction_cost_rate` là tỷ lệ chi phí trên từng đồng giá trị mua HOẶC bán. Bán 10 và mua 10 tạo tổng giá trị giao dịch 20. Đây không phải mức phí tính một lần cho cả vòng mua-bán và không phải phí trên toàn bộ tài sản mỗi tháng.
+Nếu không có lệnh `py`, dùng `python -m venv .venv`. Không bắt buộc activate môi trường.
 
-Với V là vốn trước giao dịch, h là giá trị đang nắm giữ, w là trọng số mục tiêu và c là phí, hàm giải:
+## 5. Bước 3 — kiểm tra source code
 
-`V_after + c * sum(abs(w * V_after - h)) = V`
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
 
-Phí được trả từ vốn, không vay tiền để trả phí. Tính cả phí mua ban đầu từ tiền mặt. Không tính phí thanh lý cuối mẫu: tài sản cuối mẫu được định giá theo thị trường, chưa bán hết. Thuế, trượt giá, tác động thị trường chỉ được xem là có nếu nhóm định nghĩa chúng đã nằm trong c; bản này không tự thêm khoản nào.
+Trạng thái tham chiếu hiện tại là `67 passed`. Nếu có `FAILED` hoặc `ERROR`, không diễn giải dữ liệu thật trước khi xử lý lỗi.
 
-`turnover_two_way = (giá trị mua + giá trị bán) / vốn trước giao dịch`, không nhân 1/2. Phí trên mỗi giao dịch được ghi trong bảng trades. Không cộng các tỷ lệ turnover rồi gọi đó là phần trăm vốn mất đi; tiền phí phải lấy từ cột fee.
+Muốn lưu log kiểm thử:
 
-## Chỉ tiêu
+```powershell
+.\.venv\Scripts\python.exe verify_all.py
+```
 
-- Sharpe năm = sqrt(12) * mean(lợi suất tháng sau phí - RF tháng) / sd(lợi suất tháng sau phí - RF tháng), sd mẫu ddof=1. Đây là quy ước annualization thông dụng; không bảo đảm điều chỉnh đúng khi có tự tương quan. Không dùng Sharpe làm kiểm định ý nghĩa thống kê.
-- Độ lệch chuẩn gần bằng 0: Sharpe trả NaN, không trả 0 hay vô cực để giả vờ có kết quả.
-- CAGR = (giá trị cuối / giá trị đầu)^(12/số tháng) - 1.
-- Maximum drawdown trả số âm, tính cả vốn ban đầu để không bỏ sót khoản lỗ ở tháng đầu. Drawdown dựa trên dữ liệu tháng sẽ không phản ánh sụt giảm trong tháng.
-- Benchmark được căn chỉnh đúng kỳ ngoài mẫu; thiếu ngày sẽ báo lỗi thay vì tự bỏ dòng. Benchmark là chỉ số tham chiếu không phí; phải ghi rõ cơ sở cổ tức/price return/total return và khả năng đầu tư thực tế.
-- `fee_crossings` chỉ báo khoảng giữa các mức phí đã thử. Không ngoại suy ra một ngưỡng chính xác và không buộc Sharpe giảm đơn điệu. Khi phí 0 đã không thắng benchmark, báo không có lợi thế ban đầu.
+## 6. Bước 4 — chạy demo giả lập
 
-Tham khảo công thức Sharpe: William F. Sharpe (1994), The Sharpe Ratio, https://web.stanford.edu/~wfsharpe/art/sr/SR.htm . Markowitz (1952) là cơ sở tối ưu của nhóm, không phải nguồn quy định cửa sổ 24 tháng hoặc mức phí của demo.
+`config/example.json` dùng dữ liệu giả lập trong `sample_inputs/`. Mỗi lần chạy phải chọn một `output_dir` chưa tồn tại:
 
-## Giới hạn nghiên cứu và bước tiếp theo
+```powershell
+Copy-Item config\example.json config\example.local.json
+```
 
-Chưa mô phỏng khớp lệnh thực tế, lô cổ phiếu, trần/sàn, ngừng giao dịch, thanh khoản, thanh toán T+, cổ phiếu mới vào/rời rổ, hủy niêm yết hoặc lợi suất -100%. Các trường hợp dữ liệu thiếu và return <= -100% hiện bị từ chối rõ ràng, không tự điền 0. Không sử dụng kết quả bản đầu để khẳng định đã mô phỏng đầy đủ thị trường Việt Nam.
+Mở `config/example.local.json`, đổi thành một tên output mới, ví dụ:
 
-Thứ tự tiếp: nhận dữ liệu và optimizer thật; chốt decisions.md; kiểm tra universe theo lịch sử và cách thực thi; mở rộng engine nếu cần; mới chạy nghiên cứu và viết kết luận. Không lựa chọn cửa sổ/tần suất chỉ vì cho Sharpe tốt nhất trên chính mẫu đánh giá.
+```json
+"output_dir": "../sample_run_02"
+```
+
+Chạy và mở báo cáo:
+
+```powershell
+.\.venv\Scripts\python.exe run_backtest.py --config config\example.local.json
+Start-Process .\sample_run_02\report.html
+```
+
+Demo hợp lệ tạo `comparison.csv`, `run_metadata.json`, `report.html`, các file `*_periods.csv`, `*_trades.csv`, `*_weights.csv` và biểu đồ SVG.
+
+## 7. Bước 5 — chuẩn bị dữ liệu thật
+
+Tất cả lợi suất phải là **simple return dạng số thập phân**. Ví dụ `0.025` là `2.5%`. Không truyền phần trăm hoặc log-return. Ngày phải là cuối tháng theo `YYYY-MM-DD`, tăng dần và không trùng khóa.
+
+### 7.1 Universe cố định
+
+`data/returns.csv`:
+
+```csv
+date,ticker,return
+2020-01-31,FPT,0.021
+2020-01-31,VCB,-0.008
+2020-02-29,FPT,0.015
+2020-02-29,VCB,0.011
+```
+
+Mỗi mã phải có return đầy đủ cho mọi tháng.
+
+`data/benchmark.csv`:
+
+```csv
+date,return
+2020-01-31,0.012
+2020-02-29,0.009
+```
+
+`data/risk_free.csv`:
+
+```csv
+date,rf_return
+2020-01-31,0.003
+2020-02-29,0.003
+```
+
+Nếu đầu vào là giá điều chỉnh cuối tháng với cột `date,ticker,adjusted_price`:
+
+```powershell
+.\.venv\Scripts\python.exe prepare_prices.py --input data\adjusted_prices.csv --output data\returns.csv
+```
+
+### 7.2 Universe thay đổi theo thời gian
+
+Ngoài ba file trên, tạo `data/membership.csv`:
+
+```csv
+date,ticker,member
+2020-01-31,FPT,true
+2020-01-31,VCB,true
+2020-01-31,AAA,false
+2020-02-29,FPT,true
+2020-02-29,VCB,false
+2020-02-29,AAA,true
+```
+
+Quy tắc:
+
+- Mỗi cặp tháng/mã phải có membership tường minh.
+- `member` chỉ nhận `true`, `false`, `1` hoặc `0`; không để trống.
+- Returns chỉ được thiếu đối với tài sản không nắm giữ.
+- Membership thay đổi sẽ buộc tái cân bằng để bán mã vừa rời universe.
+- Phải xác nhận thành phần rổ đã được công bố trước ngày giao dịch để tránh look-ahead bias.
+
+## 8. Bước 6A — chạy dữ liệu thật, universe cố định
+
+```powershell
+Copy-Item config\research.template.json config\research.json
+```
+
+Mở `config/research.json`, thay toàn bộ `REPLACE_WITH...` và `CONFIRM_...`. Một cấu hình điển hình:
+
+```json
+{
+  "synthetic": false,
+  "universe_mode": "fixed",
+  "data_source": "Tên nhà cung cấp và ngày tải dữ liệu",
+  "benchmark_name": "VN30 price return",
+  "return_basis": "Monthly simple return from adjusted month-end prices",
+  "universe_selection": "Danh sách mã cố định và quy tắc lựa chọn",
+  "execution_assumption": "24 tháng huấn luyện tới t-2; giao dịch trước return tháng t",
+  "returns": "../data/returns.csv",
+  "benchmark": "../data/benchmark.csv",
+  "risk_free": "../data/risk_free.csv",
+  "output_dir": "../local_runs/fixed_20261001_01",
+  "lookback": 24,
+  "rebalance_every": 1,
+  "decision_lag_periods": 1,
+  "rates": [0, 0.0015, 0.0025, 0.0035],
+  "strategies": {
+    "MinVariance": "builtin:min_variance",
+    "MaxSharpe": "builtin:max_sharpe",
+    "EqualWeight": "builtin:equal_weight"
+  },
+  "ridge": 1e-08
+}
+```
+
+Chạy:
+
+```powershell
+.\.venv\Scripts\python.exe run_backtest.py --config config\research.json
+Start-Process .\local_runs\fixed_20261001_01\report.html
+```
+
+## 9. Bước 6B — chạy dữ liệu thật, universe động
+
+```powershell
+Copy-Item config\dynamic.template.json config\dynamic.json
+```
+
+Điền đầy đủ template, đặc biệt:
+
+```json
+{
+  "universe_mode": "dynamic",
+  "returns": "../data/returns.csv",
+  "membership": "../data/membership.csv",
+  "benchmark": "../data/benchmark.csv",
+  "risk_free": "../data/risk_free.csv",
+  "rf_basis": "Monthly simple decimal return; ghi rõ cách chuyển đổi",
+  "end": "2026-08-31",
+  "output_dir": "../local_runs/dynamic_20261001_01"
+}
+```
+
+Đoạn trên chỉ minh họa các trường quan trọng; giữ và điền các trường phương pháp, chiến lược, lookback, lag và phí còn lại trong template.
+
+```powershell
+.\.venv\Scripts\python.exe run_backtest.py --config config\dynamic.json
+Start-Process .\local_runs\dynamic_20261001_01\report.html
+```
+
+Mỗi chiến lược dynamic có thêm file `*_eligibility.csv`.
+
+## 10. Chạy bộ file kỳ `Top100_Ky*.csv`
+
+Chỉ dùng khi nhóm cung cấp các cột `Date`, `Ticker`, `Monthly Return (%)`, `Close (EOM)`, `rRF` và `VN30`. Đặt file trong `data/vn100_periods/`:
+
+```powershell
+.\.venv\Scripts\python.exe run_vn100.py `
+  --input data\vn100_periods `
+  --output local_runs\vn100_provided_20261001_01 `
+  --return-basis provided `
+  --rf-basis annual_effective_percent `
+  --end 2026-08
+```
+
+Muốn tính return từ `Close (EOM)`, đổi `--return-basis prices`. Không chọn `annual_effective_percent` hoặc `monthly_percent` theo kết quả đẹp hơn; phải xác nhận đơn vị `rRF` từ nguồn.
+
+## 11. Bước 7 — kiểm tra và nghiệm thu kết quả
+
+| File | Nội dung |
+|---|---|
+| `comparison.csv` | Sharpe, CAGR, drawdown, total return, phí, turnover |
+| `*_periods.csv` | Vốn đầu/cuối, return ròng và phí từng tháng |
+| `*_trades.csv` | Giao dịch, cửa sổ huấn luyện và phí từng mã |
+| `*_weights.csv` | Trọng số đầu kỳ; tổng mỗi ngày phải xấp xỉ 1 |
+| `*_eligibility.csv` | Mã dynamic đủ/không đủ lịch sử |
+| `run_metadata.json` | Config, SHA-256 đầu vào, phiên bản thư viện |
+| `RUN_STATUS.json` | Trạng thái runner chuyên biệt VN100 |
+| `report.html` | Báo cáo tổng hợp và biểu đồ |
+
+Checklist tối thiểu:
+
+1. Không có `FAILED`, `ERROR`, `NaN` bất ngờ hoặc tháng bị mất.
+2. `train_end` phải trước ngày thực thi theo lag đã khai báo.
+3. Chiến lược, benchmark và RF phải dùng cùng kỳ đánh giá.
+4. Tổng phí trong trades phải khớp phí trong periods.
+5. Các kịch bản phí phải dùng cùng lịch và cùng trọng số mục tiêu.
+6. Metadata phải ghi đúng nguồn, return basis, RF, universe và giả định thực thi.
+7. Nhóm phải duyệt `docs/decisions.md` trước khi diễn giải kết quả thật.
+
+## 12. Lỗi thường gặp
+
+- `FileExistsError`: đổi `output_dir`; runner cố ý không ghi đè.
+- `Missing calendar month`: bổ sung tháng thiếu, không xóa dòng để lách kiểm tra.
+- `Membership cannot contain missing values`: điền membership cho mọi cặp tháng/mã.
+- `Missing/invalid return for held asset`: sửa return tại tháng đang giữ mã.
+- `RF missing in training window`: chuỗi RF chưa phủ đủ cửa sổ huấn luyện.
+- `Complete the research template field`: config vẫn còn placeholder.
+- `Insufficient eligible assets`: tháng đó có ít hơn hai mã thuộc universe và đủ lịch sử.
+
+## 13. Giới hạn nghiên cứu
+
+Backtest giả định long-only, fully invested, fractional holdings và giao dịch ở đầu kỳ trước return tháng. Phí áp dụng cho cả mua và bán, có phí mua ban đầu nhưng không thanh lý cuối mẫu. Engine chưa mô phỏng đầy đủ lô cổ phiếu, trần/sàn, ngừng giao dịch, thanh khoản, market impact, thuế và thanh toán T+.
+
+Một lần chạy thành công chỉ xác nhận code và dữ liệu đáp ứng hợp đồng kỹ thuật; không tự động xác nhận nguồn dữ liệu hoặc phương pháp nghiên cứu là đúng.

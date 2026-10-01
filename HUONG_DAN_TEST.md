@@ -66,7 +66,7 @@ Lần đầu sẽ tạo thư mục `sample_run`. Nếu đã có, sửa `output_d
 Start-Process .\research_run\report.html
 ```
 
-Nếu nhóm dùng rổ VN100 thay đổi theo thời gian, bản fixed-universe này chưa đủ: phải mở rộng theo lịch thành phần rổ và quy tắc thiếu/hủy niêm yết trước khi chạy nghiên cứu. Không đặt `universe_mode` thành fixed chỉ để bỏ qua yêu cầu đó.
+Nếu nhóm dùng rổ VN100 thay đổi theo thời gian, dùng `config/dynamic.template.json` với `membership.csv` tường minh hoặc runner `run_vn100.py`. Xem quy trình hiện hành và định dạng dữ liệu đầy đủ trong `README.md`; không đặt `universe_mode` thành fixed để bỏ qua lịch thành phần rổ.
 
 ## 7. Những gì gửi lại nhóm
 

@@ -25,7 +25,7 @@ python run_vn100.py --input <thu_muc_du_lieu> --output local_runs/vn_01 --return
 
 `run_backtest.py` từ example tạo `sample_run`; hãy chọn output mới trong config nếu chạy lại. Các lệnh trên không ghi đè outputs của nhân tố/kinh tế lượng. Runner chung cũng hỗ trợ universe động bằng `config/dynamic.template.json`; membership phải được khai báo tường minh cho mọi cặp tháng/mã.
 
-Để chạy VN dùng lệnh và giả định trong back_test_hoan_chinh/README.md hoặc root run_vn100.py. Các lỗi tích hợp được sửa không đồng nghĩa đã xác nhận dữ liệu/RF VN. Không thay đổi kết quả thống kê của nhóm khác để đạt một kết luận mong muốn.
+Để chạy VN dùng hướng dẫn hiện hành trong `README.md` và runner `run_vn100.py`. Các lỗi tích hợp được sửa không đồng nghĩa đã xác nhận dữ liệu/RF VN. Không thay đổi kết quả thống kê của nhóm khác để đạt một kết luận mong muốn.
 
 ## Kết quả kiểm tra bản sửa
 
@@ -34,5 +34,5 @@ python run_vn100.py --input <thu_muc_du_lieu> --output local_runs/vn_01 --return
 - Chạy config/example.json thành công và sinh báo cáo HTML/SVG cùng CSV chi tiết. Chưa kiểm tra giao diện bằng mắt.
 - Một cảnh báo pandas về PyArrow; không phải lỗi kiểm thử.
 - Giữ nguyên outputs, src/models, src/factors và scripts của nhóm so với main.
-- Root run_vn100.py chạy thành công 78 tháng cho MinVariance, MaxSharpe và EqualWeight với return-basis=provided, rf-basis=annual_effective_percent. Chỉ dùng folder VN100 theo kỳ. Trạng thái thực thi PASS; nghiệm thu nghiên cứu vẫn NOT_CONFIRMED vì đơn vị RF và các sai khác giá/lợi suất cần xác nhận.
+- Ghi chú lịch sử cho biết `run_vn100.py` từng chạy 78 tháng, nhưng workspace hiện tại không giữ bộ `Top100_Ky*.csv`, thư mục kết quả hoặc `RUN_STATUS.json` tương ứng. Vì không thể kiểm chứng/tái lập, hiện chưa coi đây là một lần chạy dữ liệu thật đã nghiệm thu.
 - TEST_RESULTS_V3.txt là log lịch sử, không dùng nghiệm thu phiên bản hiện tại.
