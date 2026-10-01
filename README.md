@@ -43,14 +43,105 @@ Trạng thái vẫn là **exploratory, chưa nghiệm thu nghiên cứu**, do ar
 | `local_runs/` | Dữ liệu trung gian và output backtest cục bộ |
 | `docs/` | Phương pháp, audit và tóm tắt kết quả |
 
-## 3. Bước 0 — mở đúng thư mục
+## 3. Bước 0 — clone dự án và tải data
+
+### 3.1 Kiểm tra Git và Python
+
+Mở PowerShell:
+
+```powershell
+git --version
+py -3.12 --version
+```
+
+Nếu lệnh đầu không tồn tại, cài Git for Windows. Nếu lệnh thứ hai không tồn tại, cài Python 3.12 và bật tùy chọn thêm Python Launcher/Python vào PATH.
+
+### 3.2 Clone mới từ GitHub
+
+Chọn thư mục cha nơi muốn lưu dự án, ví dụ:
+
+```powershell
+cd "D:\UEL\7. HK 1 2026 - 2027\GPM2\b4"
+git clone https://github.com/TranThanhPhu39/portfolio.git asset_pricing_vn
+cd asset_pricing_vn
+git switch main
+git pull --ff-only origin main
+```
+
+Tham số `asset_pricing_vn` ở cuối lệnh clone đặt tên thư mục local. Không chạy `git clone` bên trong một bản clone đã tồn tại.
+
+Nếu đã có dự án:
 
 ```powershell
 cd "D:\UEL\7. HK 1 2026 - 2027\GPM2\b4\asset_pricing_vn"
+git status --short
+git switch main
+git pull --ff-only origin main
+```
+
+Nếu `git status --short` hiển thị thay đổi chưa lưu, dừng lại và commit/stash chúng trước; không dùng `git reset --hard` để bỏ dữ liệu.
+
+Xác nhận đúng repository:
+
+```powershell
+git remote -v
+git branch --show-current
 Get-ChildItem
 ```
 
-Phải nhìn thấy `scripts`, `src`, `tests`, `config`, `run_backtest.py` và `requirements.txt`.
+Remote phải là `https://github.com/TranThanhPhu39/portfolio.git`, branch là `main`, và thư mục phải có `scripts`, `src`, `tests`, `config`, `run_backtest.py`.
+
+### 3.3 Tải dữ liệu từ Google Drive
+
+Link folder chuẩn (link trong tin nhắn ban đầu bị lặp hai lần):
+
+[Google Drive — dữ liệu dự án](https://drive.google.com/drive/folders/16OWRSgSubrc-Bkyog9mRIdpLk0q3UOZ8?usp=sharing)
+
+Thực hiện trong trình duyệt:
+
+1. Mở link trên và đăng nhập Google nếu Drive yêu cầu.
+2. Chọn tên folder ở đầu trang hoặc chọn toàn bộ nội dung.
+3. Chọn **Download / Tải xuống**.
+4. Chờ Google Drive nén xong; trình duyệt sẽ tải một file dạng `drive-download-....zip` vào `Downloads`.
+5. Không sửa file bên trong ZIP trước khi lưu bản gốc và hash.
+
+Google Drive folder không phải đường dẫn mà script Factor có thể đọc trực tiếp; phải tải ZIP về máy trước.
+
+Tạo chỗ lưu raw data trong clone:
+
+```powershell
+New-Item -ItemType Directory -Force data\raw_downloads
+Get-ChildItem "$env:USERPROFILE\Downloads" -Filter "drive-download-*.zip" |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 5 Name,Length,LastWriteTime
+```
+
+Copy đúng file vừa tải. Ví dụ tên archive lịch sử:
+
+```powershell
+Copy-Item -LiteralPath "$env:USERPROFILE\Downloads\drive-download-20260929T092926Z-1-001.zip" `
+  -Destination "data\raw_downloads\vn100_combined.zip"
+```
+
+Nếu Drive tạo tên khác, thay phần tên nguồn bằng tên vừa hiển thị. `data/raw_downloads/` đã được `.gitignore`; không commit archive lớn hoặc dữ liệu có giới hạn chia sẻ lên GitHub.
+
+Kiểm tra file và mã băm:
+
+```powershell
+Get-Item data\raw_downloads\vn100_combined.zip
+Get-FileHash data\raw_downloads\vn100_combined.zip -Algorithm SHA256
+tar -tf data\raw_downloads\vn100_combined.zip | Select-Object -First 30
+```
+
+Archive từng dùng để tái tạo output hiện hành có SHA-256:
+
+```text
+2e0627c061811f96eadbf57a13df6629473b715dd6eb71e9b09e636d6d56180c
+```
+
+Nếu hash hiện tại khác, Drive có thể đã được cập nhật hoặc bạn tải nhầm file. Không tự đổi dữ liệu để khớp hash: ghi lại hash mới, kiểm tra danh sách file trong ZIP và xác nhận với nhóm trước khi so sánh kết quả.
+
+Nếu Google Drive tải nhiều ZIP riêng thay vì một ZIP kết hợp, giữ nguyên từng ZIP trong `data/raw_downloads/`; ở Mục 6 truyền ZIP kỳ và ZIP master tương ứng thay vì truyền một file hai lần.
 
 ## 4. Bước 1 — tạo môi trường Python đầy đủ
 
@@ -103,24 +194,24 @@ Pipeline nhận:
 - ZIP master chứa dữ liệu thị trường và báo cáo tài chính.
 - Nếu tất cả nằm trong một ZIP kết hợp, truyền cùng một đường dẫn hai lần.
 
-Ví dụ tạo output mới, không ghi đè output đã version hóa:
+Nếu Drive cung cấp hai ZIP riêng, tạo output mới và không ghi đè output đã version hóa:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
-  "D:\du_lieu\PERIOD_ARCHIVE.zip" `
-  "D:\du_lieu\MASTER_ARCHIVE.zip" `
+  "data\raw_downloads\PERIOD_ARCHIVE.zip" `
+  "data\raw_downloads\MASTER_ARCHIVE.zip" `
   --rf-tenor 1Y `
   --market-proxy VNINDEX `
   --weighting lagged_market_cap `
   --output-dir outputs\vn_period_factors_rerun_20261001
 ```
 
-Với ZIP kết hợp:
+Với ZIP kết hợp đã tải và đổi tên theo Mục 3.3:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
-  "D:\du_lieu\combined.zip" `
-  "D:\du_lieu\combined.zip" `
+  "data\raw_downloads\vn100_combined.zip" `
+  "data\raw_downloads\vn100_combined.zip" `
   --output-dir outputs\vn_period_factors_rerun_20261001
 ```
 
