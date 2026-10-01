@@ -133,6 +133,12 @@ Get-FileHash data\raw_downloads\vn100_master.zip -Algorithm SHA256
 
 Không ghi đè output đã nghiệm thu; luôn chọn thư mục mới:
 
+Hai đối số vị trí của script có thứ tự cố định: **ZIP period trước, ZIP master sau**.
+Không dựa vào tên file nếu ZIP đã được đổi tên thủ công: ZIP period phải chứa
+`_Tom_tat_cac_ky.csv` và các file `Top100_Ky*.csv`; ZIP master phải chứa `VN100.xlsx`
+và `rRF 1Y.xlsx`. Nếu lệnh chỉ chạy khi đặt `vn100_master.zip` lên trước, hai file trên
+máy đó đang bị đặt tên ngược; hãy đối chiếu SHA-256 ở Mục 5 và đổi lại tên.
+
 ```powershell
 .\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
   data\raw_downloads\vn100_periods.zip `
@@ -187,6 +193,8 @@ outputs/vn_econometrics_ex_financials/
 Universe vế trái loại tài chính là
 `config/vn_econometrics_universe_ex_financials.csv`. Lệnh chạy đầy đủ và audit nằm
 trong `docs/section_4_7_runbook.md` và `docs/section_4_7_factor_audit.md`.
+Các lệnh trong runbook dùng Python của chính môi trường dự án:
+`.\.venv\Scripts\python.exe`; không dùng `py -3.12` sau khi đã kích hoạt/cài `.venv`.
 
 Tạo lại bảng so sánh:
 

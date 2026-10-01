@@ -2,30 +2,36 @@
 
 ## Trạng thái đầu vào
 
-Pipeline đã hỗ trợ ba kiểm tra độ bền. Tuy nhiên archive nguồn VN100/master không có
-trong workspace hiện tại, nên chưa được phép tạo ba bộ output robustness. Không dùng
-bộ nhân tố cơ sở để giả lập các biến thể.
+Pipeline đã hỗ trợ và đã tạo output cho ba kiểm tra độ bền. Để tái tạo từ đầu, đặt hai
+archive nguồn tại:
 
-Đặt ZIP kết hợp tại `data/raw_downloads/vn100_combined.zip`, hoặc thay hai đường dẫn
-đầu tiên trong các lệnh dưới đây nếu period/master nằm trong hai ZIP riêng.
+```text
+data/raw_downloads/vn100_periods.zip
+data/raw_downloads/vn100_master.zip
+```
+
+Thứ tự hai đối số vị trí là **period trước, master sau**. ZIP period chứa
+`_Tom_tat_cac_ky.csv` và `Top100_Ky*.csv`; ZIP master chứa `VN100.xlsx` và các file
+`rRF*.xlsx`. Nếu tên file trên một máy không khớp nội dung, đối chiếu hash trong README
+thay vì đảo thứ tự tùy ý.
 
 ## 1. Chạy Factor Team
 
 ```powershell
-py -3.12 scripts\build_vn_period_factors.py `
-  data\raw_downloads\vn100_combined.zip data\raw_downloads\vn100_combined.zip `
+.\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
+  data\raw_downloads\vn100_periods.zip data\raw_downloads\vn100_master.zip `
   --rf-tenor 1Y --market-proxy VNINDEX --weighting lagged_market_cap `
   --schedule supplied_semiannual `
   --output-dir outputs\vn_period_factors_semiannual
 
-py -3.12 scripts\build_vn_period_factors.py `
-  data\raw_downloads\vn100_combined.zip data\raw_downloads\vn100_combined.zip `
+.\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
+  data\raw_downloads\vn100_periods.zip data\raw_downloads\vn100_master.zip `
   --rf-tenor 1Y --market-proxy VNINDEX --weighting formation `
   --schedule annual_july `
   --output-dir outputs\vn_period_factors_formation_weights
 
-py -3.12 scripts\build_vn_period_factors.py `
-  data\raw_downloads\vn100_combined.zip data\raw_downloads\vn100_combined.zip `
+.\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
+  data\raw_downloads\vn100_periods.zip data\raw_downloads\vn100_master.zip `
   --rf-tenor 1Y --market-proxy VNINDEX --weighting lagged_market_cap `
   --schedule annual_july --exclude-financials `
   --output-dir outputs\vn_period_factors_ex_financials
@@ -40,7 +46,7 @@ Econometrics Team>` vào từng lệnh sau khi hai nhánh đã chốt commit. Kh
 commit mặc định của lần chạy cơ sở trong manifest robustness.
 
 ```powershell
-py -3.12 scripts\run_vn_econometrics.py `
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py `
   --returns outputs\vn_period_factors_semiannual\vn100_returns_clean.csv `
   --factors outputs\vn_period_factors_semiannual\vn100_factors_monthly.csv `
   --universe config\vn_econometrics_universe.csv `
@@ -50,7 +56,7 @@ py -3.12 scripts\run_vn_econometrics.py `
   --run-label ROBUSTNESS_SEMIANNUAL `
   --output-dir outputs\vn_econometrics_semiannual
 
-py -3.12 scripts\run_vn_econometrics.py `
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py `
   --returns outputs\vn_period_factors_formation_weights\vn100_returns_clean.csv `
   --factors outputs\vn_period_factors_formation_weights\vn100_factors_monthly.csv `
   --universe config\vn_econometrics_universe.csv `
@@ -59,7 +65,7 @@ py -3.12 scripts\run_vn_econometrics.py `
   --factor-financials included --run-label ROBUSTNESS_FORMATION_WEIGHTS `
   --output-dir outputs\vn_econometrics_formation_weights
 
-py -3.12 scripts\run_vn_econometrics.py `
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py `
   --returns outputs\vn_period_factors_ex_financials\vn100_returns_clean.csv `
   --factors outputs\vn_period_factors_ex_financials\vn100_factors_monthly.csv `
   --universe config\vn_econometrics_universe_ex_financials.csv `
@@ -76,7 +82,7 @@ Cả 30 mã đã được kiểm tra có đủ 60 lợi suất từ 07/2021 đ�
 ## 3. Lập bảng Mục 4.7
 
 ```powershell
-py -3.12 scripts\summarize_section_4_7.py --require-all
+.\.venv\Scripts\python.exe scripts\summarize_section_4_7.py --require-all
 ```
 
 Lệnh tạo:
