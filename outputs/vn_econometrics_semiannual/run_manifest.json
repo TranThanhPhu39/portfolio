@@ -1,0 +1,46 @@
+{
+  "sample_status": "ROBUSTNESS_SEMIANNUAL",
+  "source_return_rows": 10200,
+  "source_return_tickers": 157,
+  "source_factor_months": 102,
+  "requested_months": 60,
+  "common_months": 59,
+  "dropped_incomplete_factor_months": [],
+  "dropped_incomplete_asset_months": [
+    "2021-07-31"
+  ],
+  "sample_start": "2021-08-31",
+  "sample_end": "2026-06-30",
+  "assets": 30,
+  "selection_rule": "Top 30 VN100 members by June 2021 formation market cap; sample starts July 2021",
+  "universe_status": "team-baseline",
+  "selected_return_rows": 1770,
+  "return_sources": {
+    "close_eom": 1770
+  },
+  "selected_abs_return_over_100pct": 0,
+  "selected_reported_price_gap_over_1pp": 7,
+  "vif_over_10_count": 0,
+  "factor_team_market_proxy": "VNINDEX",
+  "econometrics_market_proxy": "VN100",
+  "market_factor_construction": "Monthly VN100 return from the matched return panel minus Factor Team RF.",
+  "factor_team_rf_proxy": "1Y government yield converted to effective monthly return",
+  "factor_team_schedule": "supplied_semiannual",
+  "factor_team_weighting": "lagged_market_cap",
+  "factor_team_financials": "included",
+  "factor_team_fiscal_rule": "latest statement announced by formation date",
+  "source_commit_factor_branch": "57c916834b8d6dbf32d02f81df271162884dbeb4",
+  "source_commit_econometrics_main": "57c916834b8d6dbf32d02f81df271162884dbeb4",
+  "econometrics_runner_sha256": "79bf919a12434393a9280d224287ea08d9931093724f469372b5f029b85745d0",
+  "econometrics_worktree_dirty": true,
+  "returns_sha256": "306f057a65c4d72fe03a03398566032d14d6a7debc63aaa54db439d552f07967",
+  "factors_sha256": "5cf9b77057233ef728b1544c3dc327eb87dcc2dd1460169a65054fefab3270db",
+  "factor_source_verification": {
+    "verified": false,
+    "reason": "custom input paths",
+    "git_blob_oids": {}
+  },
+  "universe_sha256": "e3009af6036289dcda96b35160aaa31883f82c00249e11b46a48f496cd3a3daf",
+  "python": "3.12.10",
+  "pandas": "2.3.3"
+}

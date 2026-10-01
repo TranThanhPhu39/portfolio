@@ -1,0 +1,9 @@
+period,months,return_rows,return_outliers_abs_gt_100pct,reported_return_outliers_abs_gt_100pct,return_discrepancies_abs_gt_1pp,return_discrepancies_abs_gt_10pp,reported_return_fallbacks,market_return_inconsistent_months,eligible_bm,eligible_op,eligible_inv,bm_sort_constructed,op_sort_constructed,inv_sort_constructed
+2018,12,1200,0,3,79,17,11,0,77,0,0,True,False,False
+2019,12,1200,0,1,58,17,0,0,80,0,0,True,False,False
+2020,12,1200,0,4,57,19,0,0,79,72,0,True,True,False
+2021,12,1200,0,0,36,11,0,0,73,72,67,True,True,True
+2022,12,1200,0,0,43,13,0,0,71,69,69,True,True,True
+2023,12,1200,0,1,23,9,0,0,69,68,68,True,True,True
+2024,12,1200,0,3,35,13,0,0,69,68,67,True,True,True
+2025,12,1200,1,4,16,7,0,0,69,68,67,True,True,True

@@ -1,0 +1,91 @@
+CAPM: VCB.HM
+
+                            OLS Regression Results
+==============================================================================
+Dep. Variable:                 VCB.HM   R-squared:                       0.190
+Model:                            OLS   Adj. R-squared:                  0.176
+Method:                 Least Squares   F-statistic:                     13.41
+Date:                Thu, 01 Oct 2026   Prob (F-statistic):           0.000551
+Time:                        13:13:22   Log-Likelihood:                 83.781
+No. Observations:                  59   AIC:                            -163.6
+Df Residuals:                      57   BIC:                            -159.4
+Df Model:                           1
+Covariance Type:            nonrobust
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0036      0.008      0.464      0.645      -0.012       0.019
+MKT_RF         0.4885      0.133      3.661      0.001       0.221       0.756
+==============================================================================
+Omnibus:                       18.380   Durbin-Watson:                   2.256
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               26.809
+Skew:                           1.117   Prob(JB):                     1.51e-06
+Kurtosis:                       5.432   Cond. No.                         17.2
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+
+FF3: VCB.HM
+
+                            OLS Regression Results
+==============================================================================
+Dep. Variable:                 VCB.HM   R-squared:                       0.299
+Model:                            OLS   Adj. R-squared:                  0.261
+Method:                 Least Squares   F-statistic:                     7.828
+Date:                Thu, 01 Oct 2026   Prob (F-statistic):           0.000193
+Time:                        13:13:23   Log-Likelihood:                 88.039
+No. Observations:                  59   AIC:                            -168.1
+Df Residuals:                      55   BIC:                            -159.8
+Df Model:                           3
+Covariance Type:            nonrobust
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0030      0.007      0.402      0.689      -0.012       0.018
+MKT_RF         0.4606      0.137      3.358      0.001       0.186       0.735
+SMB           -0.4646      0.159     -2.922      0.005      -0.783      -0.146
+HML            0.0987      0.119      0.828      0.411      -0.140       0.338
+==============================================================================
+Omnibus:                       18.151   Durbin-Watson:                   2.187
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               31.415
+Skew:                           0.992   Prob(JB):                     1.51e-07
+Kurtosis:                       5.973   Cond. No.                         23.2
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+
+FF5: VCB.HM
+
+                            OLS Regression Results
+==============================================================================
+Dep. Variable:                 VCB.HM   R-squared:                       0.609
+Model:                            OLS   Adj. R-squared:                  0.573
+Method:                 Least Squares   F-statistic:                     16.54
+Date:                Thu, 01 Oct 2026   Prob (F-statistic):           8.19e-10
+Time:                        13:13:24   Log-Likelihood:                 105.29
+No. Observations:                  59   AIC:                            -198.6
+Df Residuals:                      53   BIC:                            -186.1
+Df Model:                           5
+Covariance Type:            nonrobust
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0074      0.006      1.289      0.203      -0.004       0.019
+MKT_RF         0.7071      0.122      5.788      0.000       0.462       0.952
+SMB_FF5       -0.5754      0.121     -4.775      0.000      -0.817      -0.334
+HML            0.1704      0.096      1.774      0.082      -0.022       0.363
+RMW            0.6018      0.108      5.586      0.000       0.386       0.818
+CMA            0.2903      0.141      2.065      0.044       0.008       0.572
+==============================================================================
+Omnibus:                        1.657   Durbin-Watson:                   2.321
+Prob(Omnibus):                  0.437   Jarque-Bera (JB):                1.597
+Skew:                           0.380   Prob(JB):                        0.450
+Kurtosis:                       2.733   Cond. No.                         29.8
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

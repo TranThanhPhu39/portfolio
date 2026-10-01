@@ -259,21 +259,26 @@ def run(args: argparse.Namespace) -> None:
     end = pd.Period(args.end, freq="M")
     if end < start:
         raise ValueError("end month precedes start month")
-    sample_dates = pd.period_range(start, end, freq="M").to_timestamp("M")
-    sample_factors = factors.reindex(sample_dates)
-    if sample_factors[REQUIRED_FACTOR_COLUMNS].isna().any().any():
+    requested_dates = pd.period_range(start, end, freq="M").to_timestamp("M")
+    sample_factors = factors.reindex(requested_dates)
+    complete_factor_month = sample_factors[REQUIRED_FACTOR_COLUMNS].notna().all(axis=1)
+    if not complete_factor_month.all() and not args.allow_incomplete_sample:
         missing = sample_factors[REQUIRED_FACTOR_COLUMNS].isna().sum()
         raise ValueError(
             "Chosen common period has missing factors: "
             + ", ".join(f"{key}={int(value)}" for key, value in missing.items() if value)
         )
+    sample_dates = requested_dates[complete_factor_month]
+    sample_factors = sample_factors.loc[sample_dates]
+    if sample_dates.empty:
+        raise ValueError("Chosen period has no complete factor months")
     if not np.isfinite(
         sample_factors[REQUIRED_FACTOR_COLUMNS].to_numpy(dtype=float)
     ).all():
         raise ValueError("Chosen factor sample contains non-finite values")
 
     tickers, universe_rule = read_universe(args.universe)
-    sample_status = (
+    sample_status = args.run_label or (
         "KTL_BASELINE_JUNE_2021_FORMATION_TOP30"
         if args.universe_status == "team-baseline"
         else "GROUP_APPROVED_UNIVERSE"
@@ -286,8 +291,20 @@ def run(args: argparse.Namespace) -> None:
     asset_returns = wide.reindex(index=sample_dates, columns=tickers)
     missing_asset_months = asset_returns.isna().sum()
     if missing_asset_months.any():
-        detail = {name: int(count) for name, count in missing_asset_months.items() if count}
-        raise ValueError(f"Selected assets have missing months in common sample: {detail}")
+        if args.allow_incomplete_sample:
+            complete_asset_month = asset_returns.notna().all(axis=1)
+            dropped_incomplete_asset_months = [
+                date.strftime("%Y-%m-%d")
+                for date in sample_dates[~complete_asset_month]
+            ]
+            sample_dates = sample_dates[complete_asset_month]
+            sample_factors = sample_factors.loc[sample_dates]
+            asset_returns = asset_returns.loc[sample_dates]
+        else:
+            detail = {name: int(count) for name, count in missing_asset_months.items() if count}
+            raise ValueError(f"Selected assets have missing months in common sample: {detail}")
+    else:
+        dropped_incomplete_asset_months = []
     if len(sample_dates) <= ASSET_COUNT + max(map(len, MODEL_FACTORS.values())):
         raise ValueError("Need T > N + K for FF5 GRS on selected assets")
 
@@ -448,7 +465,13 @@ def run(args: argparse.Namespace) -> None:
         "source_return_rows": int(len(returns)),
         "source_return_tickers": int(returns["ticker"].nunique()),
         "source_factor_months": int(len(factors)),
+        "requested_months": int(len(requested_dates)),
         "common_months": int(len(sample_dates)),
+        "dropped_incomplete_factor_months": [
+            date.strftime("%Y-%m-%d")
+            for date in requested_dates[~complete_factor_month]
+        ],
+        "dropped_incomplete_asset_months": dropped_incomplete_asset_months,
         "sample_start": sample_dates.min().strftime("%Y-%m-%d"),
         "sample_end": sample_dates.max().strftime("%Y-%m-%d"),
         "assets": len(tickers),
@@ -475,11 +498,19 @@ def run(args: argparse.Namespace) -> None:
             else "Monthly VN100 return from the matched return panel minus Factor Team RF."
         ),
         "factor_team_rf_proxy": "1Y government yield converted to effective monthly return",
-        "factor_team_schedule": "June formation, July-to-June holding",
-        "factor_team_weighting": "lagged market capitalization",
+        "factor_team_schedule": args.factor_schedule,
+        "factor_team_weighting": args.factor_weighting,
+        "factor_team_financials": args.factor_financials,
         "factor_team_fiscal_rule": "latest statement announced by formation date",
         "source_commit_factor_branch": args.factor_commit,
         "source_commit_econometrics_main": args.econometrics_commit,
+        "econometrics_runner_sha256": sha256(Path(__file__).resolve()),
+        "econometrics_worktree_dirty": subprocess.run(
+            ["git", "diff", "--quiet", "--", "scripts/run_vn_econometrics.py", "src/models"],
+            cwd=ROOT,
+            check=False,
+        ).returncode
+        != 0,
         "returns_sha256": sha256(args.returns),
         "factors_sha256": sha256(args.factors),
         "factor_source_verification": source_verification,
@@ -524,6 +555,14 @@ def run(args: argparse.Namespace) -> None:
 
     r2 = summaries.pivot(index="ticker", columns="model", values="r_squared")
     decreases = r2.index[r2["FF5"] + 1e-12 < r2["FF3"]].tolist()
+    rejected_models = grs_results.loc[grs_results["p_value"].lt(0.05), "model"].tolist()
+    grs_conclusion = (
+        "At the 5% level, the GRS test rejects the joint zero-alpha null for: "
+        + ", ".join(rejected_models)
+        + "."
+        if rejected_models
+        else "At the 5% level, the GRS p-values do not reject the joint zero-alpha null for CAPM, FF3, or FF5."
+    )
     report = f"""# VN100 econometrics run — {sample_status}
 
 ## Inputs and sample
@@ -532,7 +571,7 @@ def run(args: argparse.Namespace) -> None:
 - Exactly {len(tickers)} assets and {len(sample_dates)} common monthly observations ({qa['sample_start']} to {qa['sample_end']}). All three models and all three GRS tests use this same sample.
 - Return, RF, and factors are decimals in the input. `run_factor_regression()` subtracts RF once. CAPM uses MKT_RF; FF3 uses SMB; FF5 uses the separate SMB_FF5 plus HML, RMW, CMA.
 - MKT uses `{args.market_proxy}`. {('MKT_RF is the Factor Team series based on VNINDEX.' if args.market_proxy == 'VNINDEX' else 'MKT_RF is recomputed from the monthly VN100 return column in the matched return panel minus the Factor Team RF.')}
-- RF remains the Factor Team's effective monthly conversion from a 1Y yield; portfolio formation is June with July-to-June holding and lagged total market-cap weights. See `docs/vn_econometrics_method_choices.md` for the baseline method and its basis.
+- RF remains the Factor Team's effective monthly conversion from a 1Y yield. Factor schedule: `{args.factor_schedule}`; weighting: `{args.factor_weighting}`; financial firms in factor sorts: `{args.factor_financials}`.
 - Universe selection: {universe_rule}. The Econometrics Team chose the June 2021 formation market-cap rule before the July 2021–June 2026 return window; status: `{args.universe_status}`.
 
 ## Summary like Fama–French Table 5
@@ -541,7 +580,7 @@ def run(args: argparse.Namespace) -> None:
 
 The paper's Table 5 uses 25 or 32 sorted US portfolios; this table uses 30 VN stocks. The figures are not numerical replication of the paper.
 
-At the 5% level, the GRS p-values do not reject the joint zero-alpha null for CAPM, FF3, or FF5 in this 30-stock, 60-month sample. This is a failure to reject for this sample, not proof that a model is true.
+{grs_conclusion} Failure to reject is specific to this sample and is not proof that a model is true.
 
 ## Market proxy sensitivity
 
@@ -561,7 +600,7 @@ Both VN100 and VNINDEX were run on the same assets, months, RF, and SMB/HML/RMW/
 
 `asset_model_summary.csv`, `coefficient_detail.csv`, `grs_summary.csv`, `vif.csv`, `market_proxy_sensitivity.csv`, `table5_style_summary.csv`, `table7_style_assets.csv`, `hml_redundancy.csv`, `selected_tickers.csv`, `sample_months.csv`, `model_summaries.txt`, and `run_manifest.json` are generated by `scripts/run_vn_econometrics.py`.
 
-This is the Econometrics Team's baseline result. The 30-asset list is fixed using information at the June 2021 formation and all selected returns are present for the following 60 months. Factor columns follow the Factor Team's versioned output; method choices and deviations from the original project brief are documented in `docs/vn_econometrics_method_choices.md`.
+This run is labeled `{sample_status}`. The 30-asset list follows the universe rule reported above, and all selected returns are present for the {len(sample_dates)} common months. Factor columns follow the supplied Factor Team output.
 """
     (args.output_dir / "run_report.md").write_text(report, encoding="utf-8")
     print(f"status={sample_status}")
@@ -604,6 +643,27 @@ def main() -> None:
         choices=["VN100", "VNINDEX"],
         default="VN100",
         help="Market series for MKT-RF; project baseline uses VN100",
+    )
+    parser.add_argument(
+        "--allow-incomplete-sample",
+        action="store_true",
+        help="Use complete factor months inside start/end instead of requiring every month",
+    )
+    parser.add_argument("--run-label", default="", help="Audit label recorded in outputs")
+    parser.add_argument(
+        "--factor-schedule",
+        choices=["annual_july", "supplied_semiannual"],
+        default="annual_july",
+    )
+    parser.add_argument(
+        "--factor-weighting",
+        choices=["lagged_market_cap", "formation"],
+        default="lagged_market_cap",
+    )
+    parser.add_argument(
+        "--factor-financials",
+        choices=["included", "excluded"],
+        default="included",
     )
     parser.add_argument(
         "--output-dir",
