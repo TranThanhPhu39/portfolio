@@ -2,12 +2,9 @@
 
 ## 1. Trạng thái dữ liệu thật
 
-Workspace hiện tại **chưa có một lần chạy backtest dữ liệu thật có đủ đầu vào, metadata và kết quả để kiểm chứng/tái lập**.
+Ngày 01/10/2026 đã chạy backtest VN100 từ dữ liệu thị trường đã chuẩn hóa trong `outputs/vn_period_factors/`, với VNINDEX làm benchmark chính và VN30 làm kiểm tra độ nhạy. Kết quả nằm trong `local_runs/` và được tóm tắt tại `docs/vn100_backtest_run_20261001.md`.
 
-- `sample_inputs/` và `sample_run/` là dữ liệu/kết quả giả lập.
-- `outputs/vn_period_factors/` là đầu ra xây dựng nhân tố, không phải portfolio backtest.
-- Không có bộ nguồn `Top100_Ky*.csv`, `local_runs/` hoặc `RUN_STATUS.json` của một lần chạy VN100 thật.
-- Không dùng kết quả demo để kết luận MinVariance, MaxSharpe hay EqualWeight tốt hơn VN30.
+Trạng thái là **exploratory, chưa nghiệm thu nghiên cứu**: archive nguồn `Top100_Ky*.csv` không còn trong workspace để kiểm chứng lại; đơn vị RF và thời điểm công bố membership chưa được xác minh độc lập. `sample_inputs/` và `sample_run/` vẫn chỉ là dữ liệu/kết quả giả lập.
 
 Engine đã được kiểm thử cho cả universe cố định và universe thay đổi theo thời gian. Để tạo kết quả nghiên cứu thật, cần cung cấp đúng dữ liệu và xác nhận các giả định trong `docs/decisions.md`.
 
@@ -49,7 +46,7 @@ Nếu không có lệnh `py`, dùng `python -m venv .venv`. Không bắt buộc 
 ## 5. Bước 3 — kiểm tra source code
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
 Trạng thái tham chiếu hiện tại là `67 passed`. Nếu có `FAILED` hoặc `ERROR`, không diễn giải dữ liệu thật trước khi xử lý lỗi.

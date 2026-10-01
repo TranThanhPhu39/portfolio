@@ -9,6 +9,7 @@ Giải nén gói bàn giao. Trong VS Code chọn File → Open Folder, mở thư
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements_backtest.txt
+.\.venv\Scripts\python.exe -m pip install "pytest>=8,<9"
 ```
 
 Nếu `py` không có, thử `python -m venv .venv`. Không cần activate môi trường nên không cần sửa ExecutionPolicy. Đây là code Python, không chạy bằng R. Nếu cả hai lệnh không có, cần cài Python trước.
@@ -16,10 +17,10 @@ Nếu `py` không có, thử `python -m venv .venv`. Không cần activate môi 
 ## 3. Test các phép tính và lỗi dữ liệu
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-Kết quả đạt: cuối màn hình có `OK`, không có `FAILED` hoặc `ERROR`. Xem `TEST_RESULTS.txt` để đối chiếu lần chạy đã thực hiện khi bàn giao.
+Kết quả đạt: cuối màn hình có `67 passed`, không có `FAILED` hoặc `ERROR`. Xem `TEST_RESULTS.txt` để đối chiếu lần chạy đã thực hiện khi bàn giao. Không dùng `unittest discover` cho toàn bộ thư mục vì `tests/test_factors.py` sử dụng trực tiếp pytest.
 
 | File | Test gì? |
 |---|---|
@@ -33,13 +34,26 @@ Test hai adapter dùng cùng hàm chia đều chỉ kiểm tra đường chạy 
 
 ## 4. Chạy toàn bộ quy trình bằng dữ liệu giả lập
 
+Tạo một config cục bộ để không sửa config mẫu:
+
 ```powershell
-.\.venv\Scripts\python.exe create_sample_inputs.py
-.\.venv\Scripts\python.exe run_backtest.py --config config/example.json
-Start-Process .\sample_run\report.html
+Copy-Item config\example.json config\example.local.json
 ```
 
-Lần đầu sẽ tạo thư mục `sample_run`. Nếu đã có, sửa `output_dir` trong `config/example.json` thành `../sample_run_02` trước khi chạy lại. Chương trình cố ý không ghi đè lần chạy cũ.
+Sau đó **mở file `config/example.local.json` trong VS Code** và sửa giá trị `output_dir` thành một thư mục chưa tồn tại, ví dụ:
+
+```json
+"output_dir": "../sample_run_02"
+```
+
+Dòng JSON trên phải được sửa trong file, không nhập trực tiếp vào PowerShell. Dữ liệu mẫu đã có sẵn; chỉ cần chạy:
+
+```powershell
+.\.venv\Scripts\python.exe run_backtest.py --config config\example.local.json
+Start-Process .\sample_run_02\report.html
+```
+
+Nếu `sample_run_02` đã tồn tại, chọn tên mới như `sample_run_03`. Chương trình cố ý không ghi đè lần chạy cũ.
 
 Đối chiếu: bảng có 5 dòng (4 mức phí và benchmark), mỗi dòng 59 tháng ngoài mẫu; Sharpe không phí khoảng 0,385379, benchmark khoảng 0,398129. Dữ liệu demo không có lợi thế ngay cả khi chưa tính phí; đây là kết quả hợp lệ.
 
