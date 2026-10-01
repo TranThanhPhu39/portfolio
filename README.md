@@ -1,268 +1,407 @@
-# Asset Pricing VN — hướng dẫn chạy backtest từ đầu đến cuối
+# Asset Pricing VN — quy trình Factor → Kinh tế lượng → Backtest
 
-## 1. Trạng thái dữ liệu thật
+README này là hướng dẫn chạy toàn bộ dự án theo đúng thứ tự phụ thuộc:
 
-Ngày 01/10/2026 đã chạy backtest VN100 từ dữ liệu thị trường đã chuẩn hóa trong `outputs/vn_period_factors/`, với VNINDEX làm benchmark chính và VN30 làm kiểm tra độ nhạy. Kết quả nằm trong `local_runs/` và được tóm tắt tại `docs/vn100_backtest_run_20261001.md`.
+```text
+ZIP dữ liệu gốc
+   ↓
+Xây dựng factor và panel lợi suất VN100
+   ├──→ Kinh tế lượng: CAPM / FF3 / FF5 / HAC / VIF / GRS
+   └──→ Chuẩn bị returns / membership / benchmark / RF
+                                      ↓
+                         Backtest danh mục động VN100
+```
 
-Trạng thái là **exploratory, chưa nghiệm thu nghiên cứu**: archive nguồn `Top100_Ky*.csv` không còn trong workspace để kiểm chứng lại; đơn vị RF và thời điểm công bố membership chưa được xác minh độc lập. `sample_inputs/` và `sample_run/` vẫn chỉ là dữ liệu/kết quả giả lập.
+Tất cả lệnh bên dưới chạy từ thư mục gốc `asset_pricing_vn` bằng PowerShell.
 
-Engine đã được kiểm thử cho cả universe cố định và universe thay đổi theo thời gian. Để tạo kết quả nghiên cứu thật, cần cung cấp đúng dữ liệu và xác nhận các giả định trong `docs/decisions.md`.
+## 1. Trạng thái hiện tại
 
-## 2. Thành phần chính
+Các output factor VN đã được lưu tại `outputs/vn_period_factors/`. Archive nguồn thô không có trong workspace hiện tại, vì vậy có hai cách bắt đầu:
 
-| Thành phần | Công dụng |
+1. Có ZIP nguồn: chạy lại từ bước Factor ở Mục 6.
+2. Chưa có ZIP nguồn: dùng các output factor đã version hóa và bắt đầu ở Mục 7.
+
+Ngày 01/10/2026 đã chạy backtest exploratory từ các output này:
+
+- VNINDEX: `local_runs/vn100_backtest_vnindex_20261001/`.
+- VN30: `local_runs/vn100_backtest_vn30_20261001/`.
+- Tóm tắt: `docs/vn100_backtest_run_20261001.md`.
+
+Trạng thái vẫn là **exploratory, chưa nghiệm thu nghiên cứu**, do archive nguồn, đơn vị RF và thời điểm công bố membership chưa được xác minh độc lập.
+
+## 2. Cấu trúc quan trọng
+
+| Đường dẫn | Vai trò |
 |---|---|
-| `run_backtest.py` | Runner CSV chung cho universe `fixed` và `dynamic` |
-| `run_vn100.py` | Runner chuyên biệt cho bộ file kỳ `Top100_Ky*.csv` |
-| `config/example.json` | Demo giả lập chạy được ngay |
-| `config/research.template.json` | Template dữ liệu thật, universe cố định |
-| `config/dynamic.template.json` | Template dữ liệu thật, universe động |
-| `docs/input_contract.md` | Hợp đồng dữ liệu đầu vào |
-| `docs/decisions.md` | Các giả định nhóm phải xác nhận |
-| `verify_all.py` | Chạy test và lưu `TEST_RESULTS.txt` |
+| `scripts/build_vn_period_factors.py` | Xây factor và panel VN100 từ ZIP nguồn |
+| `outputs/vn_period_factors/` | Output factor/panel lợi suất dùng chung |
+| `scripts/run_vn_econometrics.py` | Chạy CAPM, FF3, FF5, HAC, VIF và GRS cho Việt Nam |
+| `config/vn_econometrics_universe.csv` | Danh sách 30 tài sản cho kinh tế lượng |
+| `prepare_vn100_backtest_inputs.py` | Chuyển output Factor thành input backtest động |
+| `run_backtest.py` | Runner backtest chung cho fixed/dynamic universe |
+| `config/dynamic.template.json` | Template backtest universe động |
+| `local_runs/` | Dữ liệu trung gian và output backtest cục bộ |
+| `docs/` | Phương pháp, audit và tóm tắt kết quả |
 
-## 3. Bước 1 — mở đúng thư mục
+## 3. Bước 0 — mở đúng thư mục
 
 ```powershell
 cd "D:\UEL\7. HK 1 2026 - 2027\GPM2\b4\asset_pricing_vn"
 Get-ChildItem
 ```
 
-Phải nhìn thấy `run_backtest.py`, `src`, `tests` và `config`.
+Phải nhìn thấy `scripts`, `src`, `tests`, `config`, `run_backtest.py` và `requirements.txt`.
 
-## 4. Bước 2 — tạo môi trường Python
+## 4. Bước 1 — tạo môi trường Python đầy đủ
 
 Khuyến nghị Python 3.12:
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements_backtest.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m pip install "pytest>=8,<9"
 ```
 
-Nếu không có lệnh `py`, dùng `python -m venv .venv`. Không bắt buộc activate môi trường.
+`requirements.txt` là môi trường đầy đủ cho factor, kinh tế lượng và backtest. Nếu chỉ cài `requirements_backtest.txt`, các runner kinh tế lượng có thể thiếu `statsmodels`.
 
-## 5. Bước 3 — kiểm tra source code
+Nếu không có lệnh `py`, dùng:
+
+```powershell
+python -m venv .venv
+```
+
+Không bắt buộc activate môi trường; các lệnh sau gọi trực tiếp `.venv`.
+
+## 5. Bước 2 — chạy kiểm thử trước khi xử lý dữ liệu
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-Trạng thái tham chiếu hiện tại là `67 passed`. Nếu có `FAILED` hoặc `ERROR`, không diễn giải dữ liệu thật trước khi xử lý lỗi.
+Trạng thái tham chiếu hiện tại:
 
-Muốn lưu log kiểm thử:
+```text
+67 passed
+```
+
+Không dùng `python -m pytest -q` không kèm `tests`, vì pytest có thể thu thập các module `_test.py` ngoài thư mục kiểm thử. Không tiếp tục nếu có `FAILED` hoặc `ERROR`.
+
+Muốn lưu log:
 
 ```powershell
 .\.venv\Scripts\python.exe verify_all.py
 ```
 
-## 6. Bước 4 — chạy demo giả lập
+## 6. Giai đoạn A — xây dựng Factor VN
 
-`config/example.json` dùng dữ liệu giả lập trong `sample_inputs/`. Mỗi lần chạy phải chọn một `output_dir` chưa tồn tại:
+### 6.1 Trường hợp có archive nguồn
 
-```powershell
-Copy-Item config\example.json config\example.local.json
-```
+Pipeline nhận:
 
-Mở `config/example.local.json`, đổi thành một tên output mới, ví dụ:
+- ZIP chứa các file kỳ VN100.
+- ZIP master chứa dữ liệu thị trường và báo cáo tài chính.
+- Nếu tất cả nằm trong một ZIP kết hợp, truyền cùng một đường dẫn hai lần.
 
-```json
-"output_dir": "../sample_run_02"
-```
-
-Chạy và mở báo cáo:
+Ví dụ tạo output mới, không ghi đè output đã version hóa:
 
 ```powershell
-.\.venv\Scripts\python.exe run_backtest.py --config config\example.local.json
-Start-Process .\sample_run_02\report.html
+.\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
+  "D:\du_lieu\PERIOD_ARCHIVE.zip" `
+  "D:\du_lieu\MASTER_ARCHIVE.zip" `
+  --rf-tenor 1Y `
+  --market-proxy VNINDEX `
+  --weighting lagged_market_cap `
+  --output-dir outputs\vn_period_factors_rerun_20261001
 ```
 
-Demo hợp lệ tạo `comparison.csv`, `run_metadata.json`, `report.html`, các file `*_periods.csv`, `*_trades.csv`, `*_weights.csv` và biểu đồ SVG.
-
-## 7. Bước 5 — chuẩn bị dữ liệu thật
-
-Tất cả lợi suất phải là **simple return dạng số thập phân**. Ví dụ `0.025` là `2.5%`. Không truyền phần trăm hoặc log-return. Ngày phải là cuối tháng theo `YYYY-MM-DD`, tăng dần và không trùng khóa.
-
-### 7.1 Universe cố định
-
-`data/returns.csv`:
-
-```csv
-date,ticker,return
-2020-01-31,FPT,0.021
-2020-01-31,VCB,-0.008
-2020-02-29,FPT,0.015
-2020-02-29,VCB,0.011
-```
-
-Mỗi mã phải có return đầy đủ cho mọi tháng.
-
-`data/benchmark.csv`:
-
-```csv
-date,return
-2020-01-31,0.012
-2020-02-29,0.009
-```
-
-`data/risk_free.csv`:
-
-```csv
-date,rf_return
-2020-01-31,0.003
-2020-02-29,0.003
-```
-
-Nếu đầu vào là giá điều chỉnh cuối tháng với cột `date,ticker,adjusted_price`:
+Với ZIP kết hợp:
 
 ```powershell
-.\.venv\Scripts\python.exe prepare_prices.py --input data\adjusted_prices.csv --output data\returns.csv
+.\.venv\Scripts\python.exe scripts\build_vn_period_factors.py `
+  "D:\du_lieu\combined.zip" `
+  "D:\du_lieu\combined.zip" `
+  --output-dir outputs\vn_period_factors_rerun_20261001
 ```
 
-### 7.2 Universe thay đổi theo thời gian
-
-Ngoài ba file trên, tạo `data/membership.csv`:
-
-```csv
-date,ticker,member
-2020-01-31,FPT,true
-2020-01-31,VCB,true
-2020-01-31,AAA,false
-2020-02-29,FPT,true
-2020-02-29,VCB,false
-2020-02-29,AAA,true
-```
-
-Quy tắc:
-
-- Mỗi cặp tháng/mã phải có membership tường minh.
-- `member` chỉ nhận `true`, `false`, `1` hoặc `0`; không để trống.
-- Returns chỉ được thiếu đối với tài sản không nắm giữ.
-- Membership thay đổi sẽ buộc tái cân bằng để bán mã vừa rời universe.
-- Phải xác nhận thành phần rổ đã được công bố trước ngày giao dịch để tránh look-ahead bias.
-
-## 8. Bước 6A — chạy dữ liệu thật, universe cố định
+Xem toàn bộ tùy chọn:
 
 ```powershell
-Copy-Item config\research.template.json config\research.json
+.\.venv\Scripts\python.exe scripts\build_vn_period_factors.py --help
 ```
 
-Mở `config/research.json`, thay toàn bộ `REPLACE_WITH...` và `CONFIRM_...`. Một cấu hình điển hình:
+### 6.2 Trường hợp chưa có archive nguồn
+
+Dùng bộ đã lưu:
+
+```text
+outputs/vn_period_factors/
+```
+
+Không chạy builder với dữ liệu giả hoặc ZIP không đúng cấu trúc chỉ để tạo output.
+
+### 6.3 Output Factor cần kiểm tra
+
+| File | Nội dung |
+|---|---|
+| `vn100_factors_monthly.csv` | MKT_RF, SMB, HML, SMB_FF5, RMW, CMA, RF và MARKET |
+| `vn100_returns_clean.csv` | Return từng tháng/ticker và nguồn return |
+| `vn100_factor_summary.csv` | Mean, SD, t-stat và số quan sát |
+| `vn100_factor_correlations.csv` | Tương quan factor |
+| `vn100_formation_audit.csv` | Kiểm tra thông tin tại ngày formation |
+| `vn100_group_assignments.csv` | Phân nhóm portfolio |
+| `vn100_group_counts.csv` | Số mã từng nhóm |
+| `vn100_return_reconciliation.csv` | Sai khác reported return và price return |
+| `vn100_data_quality.csv` | Chất lượng dữ liệu theo kỳ |
+| `vn100_periods_audit.csv` | Lịch formation/holding và độ đầy đủ |
+| `vn100_fundamental_event_conflicts.csv` | Xung đột sự kiện BCTC |
+
+Trước khi sang kinh tế lượng/backtest, kiểm tra:
+
+1. Ngày tăng dần và đúng cuối tháng.
+2. Không trùng `date,ticker`.
+3. Return và RF là số thập phân, không phải phần trăm.
+4. Không có return `<= -1`.
+5. Đọc và xử lý các dòng reconciliation/conflict thay vì xóa im lặng.
+
+Chi tiết phương pháp: `docs/vn_period_factor_pipeline.md`.
+
+## 7. Giai đoạn B — kinh tế lượng
+
+### 7.1 Kiểm chứng module bằng dữ liệu Mỹ
+
+Đây là kiểm tra phần mềm, không phải kết quả Việt Nam:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\compare_factor_models.py
+.\.venv\Scripts\python.exe scripts\compare_to_fama_french_2015.py
+.\.venv\Scripts\python.exe scripts\run_grs_test.py
+.\.venv\Scripts\python.exe scripts\run_step6_diagnostics.py
+```
+
+Các file được ghi vào `outputs/step3_*`, `outputs/step4_*`, `outputs/step5_*` và `outputs/step6_*`.
+
+### 7.2 Chạy kinh tế lượng Việt Nam
+
+Nếu dùng output Factor hiện hành:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py `
+  --returns outputs\vn_period_factors\vn100_returns_clean.csv `
+  --factors outputs\vn_period_factors\vn100_factors_monthly.csv `
+  --universe config\vn_econometrics_universe.csv `
+  --universe-status team-baseline `
+  --start 2021-07 `
+  --end 2026-06 `
+  --market-proxy VN100 `
+  --output-dir outputs\vn_econometrics_rerun_20261001
+```
+
+Nếu nhóm đã duyệt chính thức danh sách 30 mã, đổi:
+
+```text
+--universe-status group-approved
+```
+
+Nếu vừa xây factor vào thư mục mới, thay cả `--returns` và `--factors` bằng đường dẫn trong thư mục mới đó.
+
+### 7.3 Output kinh tế lượng
+
+| File | Nội dung |
+|---|---|
+| `run_report.md` | Báo cáo tổng hợp và diễn giải |
+| `run_manifest.json` | Hash, commit, phương pháp và trạng thái mẫu |
+| `asset_model_summary.csv` | Alpha, beta, t-stat, R² theo mã/mô hình |
+| `coefficient_detail.csv` | OLS và HAC chi tiết |
+| `grs_summary.csv` | Kiểm định GRS cho CAPM/FF3/FF5 |
+| `vif.csv` | Đa cộng tuyến |
+| `market_proxy_sensitivity.csv` | VN100 so với VNINDEX |
+| `table5_style_summary.csv` | Tổng hợp kiểu Table 5 |
+| `table7_style_assets.csv` | Kết quả từng tài sản kiểu Table 7 |
+| `hml_redundancy.csv` | Kiểm tra HML redundancy |
+| `selected_tickers.csv` | 30 mã được chọn |
+| `sample_months.csv` | Các tháng dùng chung |
+| `model_summaries.txt` | Summary đầy đủ của statsmodels |
+
+Mở báo cáo:
+
+```powershell
+code outputs\vn_econometrics_rerun_20261001\run_report.md
+```
+
+Không diễn giải “không bác bỏ GRS” thành “mô hình chắc chắn đúng”. Xem thêm `docs/econometrics_audit_guide.md` và `docs/vn_econometrics_method_choices.md`.
+
+## 8. Giai đoạn C — chuẩn bị input backtest
+
+Backtest động cần bốn file:
+
+- `returns.csv`: `date,ticker,return`.
+- `membership.csv`: `date,ticker,member`.
+- `risk_free.csv`: `date,rf_return`.
+- `benchmark_*.csv`: `date,return`.
+
+Tạo chúng từ output Factor:
+
+```powershell
+.\.venv\Scripts\python.exe prepare_vn100_backtest_inputs.py `
+  --source outputs\vn_period_factors `
+  --output local_runs\vn100_inputs_20261001_02
+```
+
+Script cố ý không ghi đè thư mục cũ. Nếu tên đã tồn tại, tăng hậu tố `_02`, `_03`, v.v.
+
+Output gồm:
+
+```text
+returns.csv
+membership.csv
+risk_free.csv
+benchmark_vnindex.csv
+benchmark_vn30.csv
+preparation_metadata.json
+```
+
+`preparation_metadata.json` ghi hash nguồn, giai đoạn, số mã, số tháng và số reported-return fallback.
+
+## 9. Giai đoạn D — cấu hình backtest
+
+### 9.1 Tạo config VNINDEX
+
+```powershell
+Copy-Item config\dynamic.template.json config\vn100_vnindex_02.local.json
+```
+
+Mở file vừa copy và điền đầy đủ. Các trường đường dẫn tối thiểu:
 
 ```json
 {
   "synthetic": false,
-  "universe_mode": "fixed",
-  "data_source": "Tên nhà cung cấp và ngày tải dữ liệu",
-  "benchmark_name": "VN30 price return",
-  "return_basis": "Monthly simple return from adjusted month-end prices",
-  "universe_selection": "Danh sách mã cố định và quy tắc lựa chọn",
-  "execution_assumption": "24 tháng huấn luyện tới t-2; giao dịch trước return tháng t",
-  "returns": "../data/returns.csv",
-  "benchmark": "../data/benchmark.csv",
-  "risk_free": "../data/risk_free.csv",
-  "output_dir": "../local_runs/fixed_20261001_01",
+  "universe_mode": "dynamic",
+  "returns": "../local_runs/vn100_inputs_20261001_02/returns.csv",
+  "membership": "../local_runs/vn100_inputs_20261001_02/membership.csv",
+  "benchmark": "../local_runs/vn100_inputs_20261001_02/benchmark_vnindex.csv",
+  "risk_free": "../local_runs/vn100_inputs_20261001_02/risk_free.csv",
+  "output_dir": "../local_runs/vn100_backtest_vnindex_20261001_02",
   "lookback": 24,
   "rebalance_every": 1,
   "decision_lag_periods": 1,
-  "rates": [0, 0.0015, 0.0025, 0.0035],
-  "strategies": {
-    "MinVariance": "builtin:min_variance",
-    "MaxSharpe": "builtin:max_sharpe",
-    "EqualWeight": "builtin:equal_weight"
-  },
-  "ridge": 1e-08
+  "rates": [0, 0.0015, 0.0025, 0.0035]
 }
 ```
 
-Chạy:
+Đây chỉ là phần đường dẫn/tham số. Giữ ba chiến lược và điền các trường mô tả phương pháp còn lại trong template. Không nhập dòng JSON trực tiếp vào PowerShell; phải sửa trong file bằng VS Code.
+
+### 9.2 Tạo config VN30 sensitivity
+
+Copy config VNINDEX rồi đổi benchmark và output:
 
 ```powershell
-.\.venv\Scripts\python.exe run_backtest.py --config config\research.json
-Start-Process .\local_runs\fixed_20261001_01\report.html
+Copy-Item config\vn100_vnindex_02.local.json config\vn100_vn30_02.local.json
 ```
 
-## 9. Bước 6B — chạy dữ liệu thật, universe động
-
-```powershell
-Copy-Item config\dynamic.template.json config\dynamic.json
-```
-
-Điền đầy đủ template, đặc biệt:
+Trong file VN30, đổi:
 
 ```json
-{
-  "universe_mode": "dynamic",
-  "returns": "../data/returns.csv",
-  "membership": "../data/membership.csv",
-  "benchmark": "../data/benchmark.csv",
-  "risk_free": "../data/risk_free.csv",
-  "rf_basis": "Monthly simple decimal return; ghi rõ cách chuyển đổi",
-  "end": "2026-08-31",
-  "output_dir": "../local_runs/dynamic_20261001_01"
-}
+"benchmark_name": "VN30 monthly price return",
+"benchmark": "../local_runs/vn100_inputs_20261001_02/benchmark_vn30.csv",
+"output_dir": "../local_runs/vn100_backtest_vn30_20261001_02"
 ```
 
-Đoạn trên chỉ minh họa các trường quan trọng; giữ và điền các trường phương pháp, chiến lược, lookback, lag và phí còn lại trong template.
+## 10. Giai đoạn E — chạy backtest
 
 ```powershell
-.\.venv\Scripts\python.exe run_backtest.py --config config\dynamic.json
-Start-Process .\local_runs\dynamic_20261001_01\report.html
+.\.venv\Scripts\python.exe run_backtest.py --config config\vn100_vnindex_02.local.json
+.\.venv\Scripts\python.exe run_backtest.py --config config\vn100_vn30_02.local.json
 ```
 
-Mỗi chiến lược dynamic có thêm file `*_eligibility.csv`.
-
-## 10. Chạy bộ file kỳ `Top100_Ky*.csv`
-
-Chỉ dùng khi nhóm cung cấp các cột `Date`, `Ticker`, `Monthly Return (%)`, `Close (EOM)`, `rRF` và `VN30`. Đặt file trong `data/vn100_periods/`:
+Mở báo cáo:
 
 ```powershell
-.\.venv\Scripts\python.exe run_vn100.py `
-  --input data\vn100_periods `
-  --output local_runs\vn100_provided_20261001_01 `
-  --return-basis provided `
-  --rf-basis annual_effective_percent `
-  --end 2026-08
+Start-Process .\local_runs\vn100_backtest_vnindex_20261001_02\report.html
+Start-Process .\local_runs\vn100_backtest_vn30_20261001_02\report.html
 ```
 
-Muốn tính return từ `Close (EOM)`, đổi `--return-basis prices`. Không chọn `annual_effective_percent` hoặc `monthly_percent` theo kết quả đẹp hơn; phải xác nhận đơn vị `rRF` từ nguồn.
-
-## 11. Bước 7 — kiểm tra và nghiệm thu kết quả
+### 10.1 Output backtest
 
 | File | Nội dung |
 |---|---|
-| `comparison.csv` | Sharpe, CAGR, drawdown, total return, phí, turnover |
-| `*_periods.csv` | Vốn đầu/cuối, return ròng và phí từng tháng |
-| `*_trades.csv` | Giao dịch, cửa sổ huấn luyện và phí từng mã |
-| `*_weights.csv` | Trọng số đầu kỳ; tổng mỗi ngày phải xấp xỉ 1 |
-| `*_eligibility.csv` | Mã dynamic đủ/không đủ lịch sử |
-| `run_metadata.json` | Config, SHA-256 đầu vào, phiên bản thư viện |
-| `RUN_STATUS.json` | Trạng thái runner chuyên biệt VN100 |
 | `report.html` | Báo cáo tổng hợp và biểu đồ |
+| `comparison.csv` | Sharpe, CAGR, drawdown, return, phí, turnover |
+| `run_metadata.json` | Config, hash input và phiên bản thư viện |
+| `*_periods.csv` | Giá trị và return từng tháng |
+| `*_trades.csv` | Giao dịch và phí từng mã |
+| `*_weights.csv` | Trọng số đầu kỳ |
+| `*_eligibility.csv` | Mã đủ/không đủ lịch sử huấn luyện |
+| `*_equity.svg`, `*_drawdown.svg` | Biểu đồ theo chiến lược |
 
-Checklist tối thiểu:
+### 10.2 Checklist hậu kiểm
 
-1. Không có `FAILED`, `ERROR`, `NaN` bất ngờ hoặc tháng bị mất.
-2. `train_end` phải trước ngày thực thi theo lag đã khai báo.
-3. Chiến lược, benchmark và RF phải dùng cùng kỳ đánh giá.
-4. Tổng phí trong trades phải khớp phí trong periods.
-5. Các kịch bản phí phải dùng cùng lịch và cùng trọng số mục tiêu.
-6. Metadata phải ghi đúng nguồn, return basis, RF, universe và giả định thực thi.
-7. Nhóm phải duyệt `docs/decisions.md` trước khi diễn giải kết quả thật.
+1. Tất cả chiến lược/mức phí có cùng số tháng ngoài mẫu.
+2. `start_value - fee = end_value / (1 + market_return)` trong sai số số học.
+3. Tổng fee theo tháng trong trades khớp fee trong periods.
+4. Trọng số không âm và tổng xấp xỉ 1.
+5. `train_end` luôn trước tháng giao dịch đúng theo lag.
+6. Hai lần VNINDEX/VN30 phải có đường chiến lược giống nhau; chỉ dòng benchmark và so sánh thay đổi.
+7. Không coi benchmark là danh mục đã chịu cùng chi phí giao dịch.
+
+## 11. Quy trình ngắn cho workspace hiện tại
+
+Vì factor VN hiện đã tồn tại, có thể chạy theo thứ tự:
+
+```powershell
+# 1. Kiểm thử
+.\.venv\Scripts\python.exe -m pytest tests -q
+
+# 2. Kinh tế lượng vào output mới
+.\.venv\Scripts\python.exe scripts\run_vn_econometrics.py `
+  --returns outputs\vn_period_factors\vn100_returns_clean.csv `
+  --factors outputs\vn_period_factors\vn100_factors_monthly.csv `
+  --universe config\vn_econometrics_universe.csv `
+  --start 2021-07 --end 2026-06 `
+  --market-proxy VN100 `
+  --output-dir outputs\vn_econometrics_rerun_20261001
+
+# 3. Chuẩn bị input backtest mới
+.\.venv\Scripts\python.exe prepare_vn100_backtest_inputs.py `
+  --source outputs\vn_period_factors `
+  --output local_runs\vn100_inputs_20261001_02
+
+# 4. Sửa hai config local như Mục 9, sau đó chạy
+.\.venv\Scripts\python.exe run_backtest.py --config config\vn100_vnindex_02.local.json
+.\.venv\Scripts\python.exe run_backtest.py --config config\vn100_vn30_02.local.json
+```
 
 ## 12. Lỗi thường gặp
 
-- `FileExistsError`: đổi `output_dir`; runner cố ý không ghi đè.
-- `Missing calendar month`: bổ sung tháng thiếu, không xóa dòng để lách kiểm tra.
-- `Membership cannot contain missing values`: điền membership cho mọi cặp tháng/mã.
-- `Missing/invalid return for held asset`: sửa return tại tháng đang giữ mã.
-- `RF missing in training window`: chuỗi RF chưa phủ đủ cửa sổ huấn luyện.
-- `Complete the research template field`: config vẫn còn placeholder.
-- `Insufficient eligible assets`: tháng đó có ít hơn hai mã thuộc universe và đủ lịch sử.
+- `ModuleNotFoundError: statsmodels`: cài `requirements.txt`, không chỉ `requirements_backtest.txt`.
+- `ModuleNotFoundError: pytest`: cài `pytest>=8,<9` và chạy `pytest tests -q`.
+- `FileExistsError`: chọn output mới; runner backtest cố ý không ghi đè.
+- `Complete the research template field`: config vẫn còn `REPLACE_WITH` hoặc `CONFIRM_`.
+- `Missing calendar month`: dữ liệu thiếu tháng; không xóa dòng để lách kiểm tra.
+- `Membership cannot contain missing values`: mọi cặp tháng/mã phải có membership tường minh.
+- `Missing/invalid return for held asset`: return bị thiếu tại tháng đang nắm giữ mã.
+- `RF missing in training window`: RF chưa phủ đủ cửa sổ huấn luyện.
+- Cảnh báo PyArrow của pandas 2.2: không làm hỏng kết quả hiện tại; đây là cảnh báo dependency cho pandas tương lai.
 
-## 13. Giới hạn nghiên cứu
+## 13. Điều kiện nghiệm thu nghiên cứu
 
-Backtest giả định long-only, fully invested, fractional holdings và giao dịch ở đầu kỳ trước return tháng. Phí áp dụng cho cả mua và bán, có phí mua ban đầu nhưng không thanh lý cuối mẫu. Engine chưa mô phỏng đầy đủ lô cổ phiếu, trần/sàn, ngừng giao dịch, thanh khoản, market impact, thuế và thanh toán T+.
+Trước khi dùng kết quả trong luận văn/báo cáo cuối:
 
-Một lần chạy thành công chỉ xác nhận code và dữ liệu đáp ứng hợp đồng kỹ thuật; không tự động xác nhận nguồn dữ liệu hoặc phương pháp nghiên cứu là đúng.
+1. Lưu archive nguồn và SHA-256.
+2. Xác nhận cơ sở giá: price return hay total return, có điều chỉnh cổ tức/quyền hay không.
+3. Xác nhận đơn vị và kỳ hạn RF.
+4. Xác nhận ngày công bố membership trước thời điểm giao dịch mô phỏng.
+5. Duyệt reconciliation và fundamental conflicts.
+6. Chốt universe kinh tế lượng và benchmark bằng quyết định nhóm, không theo kết quả đẹp nhất.
+7. Ghi rõ ridge, lookback, lag, phí và giới hạn thực thi.
+8. Không diễn giải test pass như bằng chứng dữ liệu/phương pháp chắc chắn đúng.
+
+Các tài liệu liên quan:
+
+- `docs/vn_period_factor_pipeline.md`
+- `docs/econometrics_audit_guide.md`
+- `docs/vn_econometrics_method_choices.md`
+- `docs/input_contract.md`
+- `docs/decisions.md`
+- `HUONG_DAN_TEST.md`
+- `METHOD_SPEC.md`
