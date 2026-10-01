@@ -13,7 +13,12 @@
   "lookback": 24,
   "rebalance_every": 1,
   "decision_lag_periods": 1,
-  "rates": [0, 0.0015, 0.0025, 0.0035],
+  "rates": [
+    0,
+    0.0015,
+    0.0025,
+    0.0035
+  ],
   "strategies": {
     "MinVariance": "builtin:min_variance",
     "MaxSharpe": "builtin:max_sharpe",
