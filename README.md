@@ -1,6 +1,6 @@
 # Điểm vào các phần của nhóm
 
-**Sửa nhận xét 30/09:** các runner backtest ở gốc repo đã có module, test và config đầy đủ. Xem [bảng trả lời từng lỗi](docs/backtest_review_resolution.md). Tại gốc repo chạy `python -m pip install -r requirements_backtest_dev.txt`, rồi `python verify_all.py`. `CHAY_LAI.cmd` chạy demo kiểm tra logic; đây không phải lệnh chạy dữ liệu VN thật.
+**Sửa nhận xét 30/09:** các runner backtest ở gốc repo đã có module, test và config đầy đủ. Xem [bảng trả lời từng lỗi](docs/backtest_review_resolution.md). Tại gốc repo chạy `python -m pip install -r requirements_backtest.txt`, rồi `python verify_all.py`. Demo cố định chạy bằng `python run_backtest.py --config config/example.json`; dữ liệu VN100 theo kỳ chạy bằng `run_vn100.py` với các giả định được khai báo rõ.
 
 - **Backtest hiện hành của Thành:** [back_test_hoan_chinh/README.md](back_test_hoan_chinh/README.md). Chạy script trong thư mục này để dùng đúng mã nguồn và dữ liệu đi kèm.
 - **Kinh tế lượng:** [docs/econometrics_audit_guide.md](docs/econometrics_audit_guide.md).
@@ -18,7 +18,7 @@ Các thư mục `config/` và `outputs/` ở gốc được giữ để phục v
 
 Gói này để ghép vào repo `TranThanhPhu39/portfolio`. Được tạo cục bộ; chưa push hoặc sửa repo trên GitHub. Có thêm baseline tối ưu Markowitz và xử lý giá tháng để kiểm tra sáu mục; chưa thay code hoặc push lên repo nhóm.
 
-Hướng dẫn chạy từng bước: **HUONG_DAN_TEST.md**. Runner CSV: `run_backtest.py`; cấu hình mẫu: `config/example.json`; template nghiên cứu: `config/research.template.json`. Kết quả kiểm thử v3 xem TEST_RESULTS_V3.txt; số 29 trong hướng dẫn cũ chỉ áp dụng v2.
+Hướng dẫn chạy từng bước: **HUONG_DAN_TEST.md**. Runner CSV: `run_backtest.py`; cấu hình mẫu cố định: `config/example.json`; template nghiên cứu cố định: `config/research.template.json`; template universe động: `config/dynamic.template.json`. Kết quả kiểm thử hiện tại được tạo bằng `verify_all.py`; `TEST_RESULTS_V3.txt` chỉ là log lịch sử.
 
 ## Trạng thái
 

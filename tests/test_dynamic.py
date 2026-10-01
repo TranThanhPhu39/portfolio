@@ -60,6 +60,41 @@ class DynamicTests(unittest.TestCase):
             result.periods.end_value.to_numpy(), 1.01 ** np.arange(1, 6)
         )
 
+    def test_missing_membership_rejected(self):
+        membership = self.membership.astype(object)
+        membership.iloc[-1, 0] = None
+        with self.assertRaisesRegex(ValueError, "cannot contain missing"):
+            make_dynamic_schedule(self.returns, membership, self.optimizer, 3, 1)
+
+    def test_non_boolean_membership_rejected(self):
+        membership = self.membership.astype(str)
+        with self.assertRaisesRegex(ValueError, "explicit booleans"):
+            make_dynamic_schedule(self.returns, membership, self.optimizer, 3, 1)
+
+    def test_rebalance_interval_is_respected(self):
+        schedule, _ = make_dynamic_schedule(
+            self.returns, self.membership, self.optimizer, 3, 1,
+            rebalance_every=2,
+        )
+        self.assertEqual([item["position"] for item in schedule], [4, 6, 8])
+
+    def test_membership_change_forces_exit_between_regular_rebalances(self):
+        self.membership.loc[self.returns.index[5] :, "C"] = False
+        schedule, _ = make_dynamic_schedule(
+            self.returns, self.membership, self.optimizer, 3, 1,
+            rebalance_every=3,
+        )
+        self.assertEqual([item["position"] for item in schedule], [4, 5, 7])
+        self.assertEqual(schedule[1]["weights"][2], 0)
+
+    def test_invalid_schedule_rejected(self):
+        schedule, _ = make_dynamic_schedule(
+            self.returns, self.membership, self.optimizer, 3, 1
+        )
+        schedule[0]["position"] = len(self.returns)
+        with self.assertRaisesRegex(ValueError, "execution position"):
+            simulate_dynamic(self.returns, schedule, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

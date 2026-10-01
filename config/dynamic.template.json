@@ -1,0 +1,26 @@
+{
+  "synthetic": false,
+  "universe_mode": "dynamic",
+  "data_source": "REPLACE_WITH_SOURCE",
+  "benchmark_name": "VN30 - CONFIRM_RETURN_BASIS",
+  "return_basis": "REPLACE_WITH_PRICE_OR_TOTAL_RETURN",
+  "rf_basis": "REPLACE_WITH_MONTHLY_RF_CONVERSION",
+  "end": "REPLACE_WITH_LAST_MONTH_END",
+  "universe_selection": "REPLACE_WITH_MEMBERSHIP_SOURCE_AND_ANNOUNCEMENT_TIMING",
+  "execution_assumption": "REPLACE_WITH_AGREED_EXECUTION",
+  "returns": "../data/returns.csv",
+  "membership": "../data/membership.csv",
+  "benchmark": "../data/benchmark.csv",
+  "risk_free": "../data/risk_free.csv",
+  "output_dir": "../dynamic_research_run",
+  "lookback": 24,
+  "rebalance_every": 1,
+  "decision_lag_periods": 1,
+  "rates": [0, 0.0015, 0.0025, 0.0035],
+  "strategies": {
+    "MinVariance": "builtin:min_variance",
+    "MaxSharpe": "builtin:max_sharpe",
+    "EqualWeight": "builtin:equal_weight"
+  },
+  "ridge": 1e-08
+}

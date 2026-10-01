@@ -77,7 +77,24 @@ class PipelineTests(unittest.TestCase):
             self.run_config()
         self.assertFalse((self.root / "result").exists())
 
-    def test_dynamic_universe_rejected(self):
+    def test_dynamic_universe_full_export(self):
+        returns = pd.read_csv(self.root / "returns.csv")
+        membership = returns[["date", "ticker"]].copy()
+        membership["member"] = True
+        membership.to_csv(self.root / "membership.csv", index=False)
+        self.config.update(
+            universe_mode="dynamic",
+            membership="membership.csv",
+            rf_basis="monthly simple decimal",
+            end=str(pd.to_datetime(returns.date).max().date()),
+        )
+        output = self.run_config()
+        self.assertTrue(
+            (output / "DEMO_equal_weight_eligibility.csv").exists()
+        )
+        self.assertEqual(len(pd.read_csv(output / "comparison.csv")), 5)
+
+    def test_unknown_universe_mode_rejected(self):
         self.config["universe_mode"] = "historical"
         with self.assertRaises(ValueError):
             self.run_config()
