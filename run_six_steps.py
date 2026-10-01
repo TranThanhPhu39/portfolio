@@ -7,6 +7,7 @@ import pandas as pd
 import scipy
 from src.portfolio.prices import load_prices
 from src.portfolio.markowitz import estimate, solve, frontier, portfolio_stats, optimizer_factory
+from src.portfolio.sharpe_comparison import export_sharpe_comparison
 from src.backtest.walk_forward import run_cost_scenarios
 from src.backtest.performance import comparison_table, fee_crossings
 from src.backtest.reporting import export_report
@@ -54,70 +55,7 @@ def run(output, lookback=24, ridge=1e-8):
         chart.append((name, [(point[0], point[1])]))
     (out/'04_frontier.svg').write_text(svg_plot(chart,'Đường biên hiệu quả · dữ liệu giả lập','Độ lệch chuẩn tháng (%)','Lợi suất kỳ vọng tháng (%)',kind='frontier',x_percent=True,y_percent=True),encoding='utf-8')
     rows.to_csv(out/'05_in_sample_comparison.csv',index=False)
-        # So sanh Sharpe tren cung cua so huan luyen va cung chuoi RF.
-    rf_window = rf.reindex(history.index)
-
-    if history.isna().any().any() or rf_window.isna().any():
-        raise ValueError("Du lieu loi suat hoac RF bi thieu trong ky so sanh.")
-
-    weights = maxw.reindex(history.columns)
-
-    if weights.isna().any():
-        raise ValueError("Trong so MaxSharpe khong khop danh sach ma.")
-
-    comparison_returns = pd.DataFrame(index=history.index)
-    comparison_returns["MaxSharpe"] = history @ weights
-
-    for ticker in history.columns:
-        comparison_returns[ticker] = history[ticker]
-
-    sharpe_rows = []
-
-    for name in comparison_returns.columns:
-        excess = comparison_returns[name] - rf_window
-        excess_sd = excess.std(ddof=1)
-
-        sharpe = (
-            np.sqrt(12) * excess.mean() / excess_sd
-            if np.isfinite(excess_sd) and excess_sd > 1e-14
-            else np.nan
-        )
-
-        sharpe_rows.append({
-            "name": name,
-            "sharpe_annualized": sharpe,
-            "start_date": history.index[0].strftime("%Y-%m-%d"),
-            "end_date": history.index[-1].strftime("%Y-%m-%d"),
-            "months": len(history),
-            "rf_mean_monthly": rf_window.mean(),
-        })
-
-    sharpe_table = pd.DataFrame(sharpe_rows)
-
-    # Trung binh Sharpe tung ma, KHONG phai Sharpe danh muc chia deu.
-    asset_sharpes = sharpe_table.iloc[1:]["sharpe_annualized"]
-
-    mean_asset_sharpe = (
-        asset_sharpes.mean()
-        if np.isfinite(asset_sharpes.to_numpy()).all()
-        else np.nan
-    )
-
-    sharpe_table.loc[len(sharpe_table)] = {
-        "name": "MeanAssetSharpe",
-        "sharpe_annualized": mean_asset_sharpe,
-        "start_date": history.index[0].strftime("%Y-%m-%d"),
-        "end_date": history.index[-1].strftime("%Y-%m-%d"),
-        "months": len(history),
-        "rf_mean_monthly": rf_window.mean(),
-    }
-
-    sharpe_table.to_csv(
-        out / "05_sharpe_assets_comparison.csv",
-        index=False,
-        encoding="utf-8-sig",
-    )
-
+    sharpe_table = export_sharpe_comparison(out, history, rf, maxw)
     print("\nSO SANH SHARPE TRONG MAU - CUNG KY, CUNG RF, CHUA PHI")
     print(sharpe_table.to_string(index=False))
     strategies = {'MinVariance':optimizer_factory('min_variance',rf,ridge),

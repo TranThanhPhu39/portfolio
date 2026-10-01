@@ -85,6 +85,13 @@ def execute(config_path):
     out.mkdir(parents=True, exist_ok=False)
     table = pd.concat(tables, ignore_index=True)
     table.to_csv(out / 'comparison.csv', index=False)
+    if 'MaxSharpe' in outputs:
+        from src.portfolio.sharpe_comparison import export_sharpe_comparison
+        trades = outputs['MaxSharpe'][0.].trades
+        first = trades[trades.date == trades.date.min()]
+        weights = first.set_index('asset').target_weight
+        window = returns.loc[first.train_start.iloc[0]:first.train_end.iloc[0]]
+        export_sharpe_comparison(out, window, rf, weights)
     for name, results in outputs.items():
         for rate, result in results.items():
             prefix = f'{name}_fee_{rate:.6f}'
