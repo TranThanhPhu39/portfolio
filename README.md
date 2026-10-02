@@ -121,8 +121,8 @@ data/raw_downloads/vn100_master.zip
 | `vn100_periods.zip` | 18 file `Top100_Ky*.csv` và bảng tổng hợp | `04f233a314c32e295d11874bf615a66b380e74ee7143a0e977196b3c6b896fe1` |
 | `vn100_master.zip` | `VN100.xlsx`, master data và RF 1Y/3Y/10Y | `dd10bf9df75d9ce3365a942345a1f5d6012e1e3ddd026ae4ae485ce1f1461dd3` |
 
-`data/raw_downloads/` bị bỏ qua bởi Git. Không đẩy dữ liệu có giới hạn chia sẻ lên
-GitHub. Kiểm tra hash trước khi tái tạo kết quả:
+Hai ZIP nguồn được phép chia sẻ công khai và có thể được lưu trong Git để người dùng
+tái tạo kết quả. Kiểm tra hash sau khi tải hoặc sao chép dữ liệu:
 
 ```powershell
 Get-FileHash data\raw_downloads\vn100_periods.zip -Algorithm SHA256

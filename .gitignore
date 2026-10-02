@@ -7,5 +7,4 @@ local_runs/
 sample_run/
 sample_run_*/
 config/*.local.json
-data/raw_downloads/
 *.log
